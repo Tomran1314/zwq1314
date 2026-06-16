@@ -734,36 +734,39 @@
     const btn = document.getElementById('lang-btn');
     btn.textContent = currentLang === 'zh' ? '🌐 EN' : '🌐 中文';
 
-    // 翻译所有带 data-zh / data-en 属性的元素
+    // 翻译所有叶节点（没有子元素的）
     document.querySelectorAll('[data-zh]').forEach(el => {
-      el.textContent = currentLang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+      if(el.children.length === 0) {
+        const val = currentLang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+        if(val) el.textContent = val;
+      }
+    });
+
+    // placeholder 翻译
+    const placeholders = {
+      zh: {name:'请输入你的姓名', phone:'请填 9-11 位手机号', email:'your@email.com', line:'你的 Line ID（选填）'},
+      en: {name:'Enter your full name', phone:'9-11 digit phone number', email:'your@email.com', line:'Your Line ID (optional)'}
+    };
+    const p = placeholders[currentLang];
+    ['m-name','m-phone','m-email','m-line'].forEach((id,i) => {
+      const el = document.getElementById(id);
+      const keys = ['name','phone','email','line'];
+      if(el) el.placeholder = p[keys[i]];
     });
 
     // 底部按钮
-    const bottomBtn = document.querySelector('.bottom-fixed-btn');
-    if(bottomBtn) bottomBtn.textContent = currentLang === 'zh'
-      ? '🌸 立即报名 · 免费学习'
-      : '🌸 Register Now · Learn for Free';
+    const bb = document.querySelector('.bottom-fixed-btn');
+    if(bb) bb.textContent = currentLang==='zh' ? '🌸 立即报名 · 免费学习' : '🌸 Register Now · Free';
 
-    // 弹窗内容
-    const modalDateInfo = document.getElementById('modal-date-info');
-    if(modalDateInfo) modalDateInfo.textContent = currentLang === 'zh'
+    // 倒计时弹窗日期
+    const md = document.getElementById('modal-date-info');
+    if(md) md.textContent = currentLang==='zh'
       ? '📅 6月21–24日 · 每晚 7:00 · 线上 Zoom'
-      : '📅 Jun 21–24 · 7:00 PM daily · Online Zoom';
+      : '📅 Jun 21–24 · 7:00 PM · Online Zoom';
   }
 
   // FORM MODAL  // FORM MODAL
   function openFormModal(){
-    // 检查本次会话是否已提交
-    try {
-      const rec = sessionStorage.getItem('zwq_reg');
-      if(rec){
-        const d = JSON.parse(rec);
-        const msg = encodeURIComponent('老师您好，我想预约《播种幸福4天营》直播课学习，我是：'+(d.name||''));
-        window.open('https://wa.me/'+(d.num||'60145461319')+'?text='+msg,'_blank');
-        return;
-      }
-    } catch(e){}
     document.getElementById('form-modal').classList.add('show');
     document.body.style.overflow='hidden';
     const d=document.getElementById('cd-days');
@@ -845,10 +848,17 @@
     }
   });
 
-  // WA轮替全局index（用localStorage持久化，跨会话保持轮替）
-  const _waNumbers = ['60145461319', '60173775015'];
+  // WA轮替（用时间戳确保均匀分配，不依赖localStorage）
+  const _waNumbers = ['60145461319', '60173775015', '601125253191'];
+  const _waNames   = ['小何助教', '黄娟老师', '越聪老师'];
   function _getWaIndex(){
-    try{ return parseInt(localStorage.getItem('_waIdx')||'0'); }catch(e){ return 0; }
+    // 优先用localStorage，失败则用时间秒数
+    try{
+      const stored = localStorage.getItem('_waIdx');
+      if(stored !== null) return parseInt(stored);
+    }catch(e){}
+    // 备用：用当前秒数轮替
+    return Math.floor(Date.now()/1000) % _waNumbers.length;
   }
   function _setWaIndex(i){
     try{ localStorage.setItem('_waIdx', String(i)); }catch(e){}
@@ -869,45 +879,6 @@
     document.getElementById('phone-error').style.display='none';
     const fullPhone=country+phone;
 
-    // ── 发送到 Systeme.io（调试模式）──
-    (async function(){
-      try{
-        const r = await fetch('https://api.systeme.io/api/contacts',{
-          method:'POST',
-          headers:{
-            'Content-Type':'application/json',
-            'X-API-Key':'p1gkjeykeqs3jpxehdx5otaqdk4sb6a8hoyg4915d22zb2rsc6ffm9sg9vqwgu8p',
-            'accept':'application/json'
-          },
-          body:JSON.stringify({
-            email:email,
-            fields:[
-              {slug:'first_name',value:name},
-              {slug:'phone',value:fullPhone},
-              {slug:'surname',value:line||''}
-            ]
-          })
-        });
-        const status = r.status;
-        const data = await r.json();
-        alert('Systeme.io 状态: '+status+'\n\n返回: '+JSON.stringify(data).substring(0,300));
-        if(data && data.id){
-          const r2 = await fetch('https://api.systeme.io/api/contacts/'+data.id+'/tags',{
-            method:'POST',
-            headers:{
-              'Content-Type':'application/json',
-              'X-API-Key':'p1gkjeykeqs3jpxehdx5otaqdk4sb6a8hoyg4915d22zb2rsc6ffm9sg9vqwgu8p',
-              'accept':'application/json'
-            },
-            body:JSON.stringify({name:'bozhongxingfu'})
-          });
-          const d2 = await r2.json();
-          alert('标签添加: '+r2.status+'\n'+JSON.stringify(d2).substring(0,200));
-        }
-      }catch(e){
-        alert('错误: '+e.message);
-      }
-    })();
 
     // ── 关闭弹窗 ──
     document.getElementById('form-modal').classList.remove('show');
@@ -921,11 +892,8 @@
     const num = _waNumbers[_idx % _waNumbers.length];
     _setWaIndex(_idx + 1);  // 下一个人用下一个号码
 
-    // 保存本次记录（防重复用）
-    try{ sessionStorage.setItem('zwq_reg', JSON.stringify({name:name, num:num})); }catch(e){}
-
     // ── 发送到 Google Sheets ──
-    fetch('https://script.google.com/macros/s/AKfycbyLtB5q5Jpb9f6E5RBCMOHhWc9OSGn8iF_aakLT9YNTvvzzmA_lc3rMn6NSyofSOfE/exec', {
+    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec', {
       method: 'POST',
       mode: 'no-cors',
       headers: {'Content-Type': 'application/json'},
@@ -934,7 +902,8 @@
         phone: fullPhone,
         email: email,
         line:  line || '',
-        waNum: num
+        waNum: num,
+        staff: _waNames[_idx % _waNames.length] || ''
       })
     }).catch(()=>{});
 
