@@ -537,26 +537,25 @@
         <label>WhatsApp 号码 *</label>
         <div class="phone-wrap">
           <select class="country-select" id="f-country">
-            <option value="+60">MY +60</option>
-            <option value="+65">SG +65</option>
-            <option value="+886">TW +886</option>
-            <option value="+86">CN +86</option>
-            <option value="+852">HK +852</option>
-            <option value="+853">MO +853</option>
-            <option value="+62">ID +62</option>
-            <option value="+66">TH +66</option>
-            <option value="+63">PH +63</option>
-            <option value="+84">VN +84</option>
-            <option value="+95">MM +95</option>
-            <option value="+60">BN +673</option>
-            <option value="+81">JP +81</option>
-            <option value="+82">KR +82</option>
-            <option value="+61">AU +61</option>
-            <option value="+64">NZ +64</option>
-            <option value="+1">US +1</option>
-            <option value="+1">CA +1</option>
-            <option value="+44">GB +44</option>
-            <option value="+61">🇦🇺 +61</option>
+            <option value="+60">MY 🇲🇾 +60</option>
+            <option value="+65">SG 🇸🇬 +65</option>
+            <option value="+886">TW 🇹🇼 +886</option>
+            <option value="+86">CN 🇨🇳 +86</option>
+            <option value="+852">HK 🇭🇰 +852</option>
+            <option value="+853">MO 🇲🇴 +853</option>
+            <option value="+62">ID 🇮🇩 +62</option>
+            <option value="+66">TH 🇹🇭 +66</option>
+            <option value="+63">PH 🇵🇭 +63</option>
+            <option value="+84">VN 🇻🇳 +84</option>
+            <option value="+95">MM 🇲🇲 +95</option>
+            <option value="+673">BN 🇧🇳 +673</option>
+            <option value="+81">JP 🇯🇵 +81</option>
+            <option value="+82">KR 🇰🇷 +82</option>
+            <option value="+61">AU 🇦🇺 +61</option>
+            <option value="+64">NZ 🇳🇿 +64</option>
+            <option value="+1">US 🇺🇸 +1</option>
+            <option value="+1">CA 🇨🇦 +1</option>
+            <option value="+44">GB 🇬🇧 +44</option>
           </select>
           <input type="tel" id="f-phone" class="phone-input" placeholder="请填 9-11 位手机号" required />
         </div>
@@ -920,7 +919,7 @@
 
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _params2 = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||''});
-    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec?'+_params2.toString())
+    fetch('https://script.google.com/macros/s/AKfycbx2ALJ52uGps4wAANJDmqDRJrE9RkTn32b98jfpoeOKr19-23umVJoHVX73Vack82k/exec?'+_params2.toString())
       .catch(()=>{});
 
     window.open('https://wa.me/'+num+'?text='+msg,'_blank');
@@ -971,7 +970,7 @@
 
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _params = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||''});
-    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec?'+_params.toString())
+    fetch('https://script.google.com/macros/s/AKfycbx2ALJ52uGps4wAANJDmqDRJrE9RkTn32b98jfpoeOKr19-23umVJoHVX73Vack82k/exec?'+_params.toString())
       .catch(()=>{});
 
     // ── 自动跳转 WhatsApp（直接触发，不经过异步） ──
