@@ -608,6 +608,35 @@
   </div>
 </div>
 
+
+<!-- THANK YOU OVERLAY -->
+<div class="thank-overlay" id="thank-overlay">
+  <div class="thank-box">
+    <button class="thank-close" onclick="closeThank()">✕</button>
+    <div class="thank-icon">🎉</div>
+    <div class="thank-title">报名成功！</div>
+    <div class="thank-sub">助教将通过 WhatsApp 发送直播链接</div>
+    <div class="thank-card">
+      <div class="thank-card-row">
+        <span style="color:var(--text-soft)">姓名</span>
+        <span id="thank-name" style="font-weight:600;color:var(--text-dark)"></span>
+      </div>
+      <div class="thank-card-row">
+        <span style="color:var(--text-soft)">WhatsApp</span>
+        <span id="thank-phone" style="font-weight:600;color:var(--text-dark)"></span>
+      </div>
+    </div>
+    <a id="thank-wa-link" href="#" target="_blank"
+       style="display:block;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;
+              text-decoration:none;padding:14px 20px;border-radius:14px;font-weight:700;
+              font-size:1rem;margin-bottom:10px;text-align:center">
+      💬 立即联系官方运营
+      <div style="font-size:0.76rem;opacity:0.9;font-weight:400;margin-top:3px">WhatsApp · 周老师全球媒体运营</div>
+    </a>
+    <div style="font-size:0.75rem;color:var(--text-soft)">如未收到消息，请主动联系我们 📩</div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <p data-zh="© 2026 汇成百年 HUICHENG · 播种幸福4天营" data-en="© 2026 HUICHENG · Sow Happiness 4-Day Camp">© 2026 汇成百年 HUICHENG · 播种幸福4天营</p>
@@ -852,10 +881,9 @@
   const _waNumbers = ['60145461319', '60173775015', '601125253191'];
   const _waNames   = ['小何助教', '黄娟老师', '越聪老师'];
   function _getWaIndex(name, phone){
-    // 用姓名+电话生成哈希，确保同一个人总是分配到同一个客服
-    // 且不同人均匀分布
+    // 用姓名+电话哈希，同一个人固定分配到同一客服
     let hash = 0;
-    const str = (name + phone + Date.now().toString()).slice(0, 20);
+    const str = name + phone;
     for(let i = 0; i < str.length; i++){
       hash = ((hash << 5) - hash) + str.charCodeAt(i);
       hash = hash & hash;
@@ -932,7 +960,7 @@
   updateCountdown();
   setInterval(updateCountdown, 1000);
 
-  // FORM → 感谢页面 + WhatsApp
+  // FORM → 感谢页面 + 自动跳转 WhatsApp
   function submitForm(){
     const name=document.getElementById('f-name').value.trim();
     const country=document.getElementById('f-country').value;
@@ -943,20 +971,36 @@
       alert('请填写姓名、WhatsApp 号码和电子邮箱 🌸');return;
     }
     const fullPhone=country+phone;
-    let waMsg=`🌸 播种幸福4天营 — 免费报名\n\n姓名：${name}\nWhatsApp：${fullPhone}\n邮箱：${email}`;
-    if(line) waMsg+=`\nLine ID：${line}`;
-    waMsg+='\n\n我要报名6月21–24日的免费直播课！';
-    const encodedMsg = encodeURIComponent(waMsg);
-    
-    // 显示感谢弹窗
+
+    // ── WA 轮替分配 ──
+    const _idx = _getWaIndex(name, fullPhone);
+    const num  = _waNumbers[_idx];
+
+    // ── 构建预填消息 ──
+    const msg = encodeURIComponent(`老师您好，我想预约《播种幸福4天营》直播课学习，我是：${name}`);
+
+    // ── 发送到 Google Sheets ──
+    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||''})
+    }).catch(()=>{});
+
+    // ── 自动跳转 WhatsApp（直接触发，不经过异步） ──
+    window.open('https://wa.me/'+num+'?text='+msg, '_blank');
+
+    // ── 显示感谢弹窗 ──
     document.getElementById('thank-name').textContent = name;
     document.getElementById('thank-phone').textContent = fullPhone;
-    document.getElementById('thank-wa-link').href = 'https://wa.me/60178389541?text='+encodedMsg;
+    document.getElementById('thank-wa-link').href = 'https://wa.me/'+num+'?text='+msg;
     document.getElementById('thank-overlay').classList.add('show');
+    document.body.style.overflow='hidden';
   }
-  
+
   function closeThank(){
     document.getElementById('thank-overlay').classList.remove('show');
+    document.body.style.overflow='';
   }
 
   // FAQ
