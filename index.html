@@ -878,8 +878,8 @@
   });
 
   // WA轮替（用姓名+电话哈希，确保每个人稳定分配，跨浏览器有效）
-  const _waNumbers = ['60145461319', '60173775015', '601125253191'];
-  const _waNames   = ['小何助教', '黄娟老师', '越聪老师'];
+  const _waNumbers = ['60145461319', '60173775015', '601125253191', '60178624689'];
+  const _waNames   = ['小何助教', '黄娟老师', '越聪老师', '大鹏老师'];
   function _getWaIndex(name, phone){
     // 用姓名+电话哈希，同一个人固定分配到同一客服
     let hash = 0;
@@ -918,20 +918,10 @@
     const _idx = _getWaIndex(name, fullPhone);
     const num = _waNumbers[_idx];
 
-    // ── 发送到 Google Sheets ──
-    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec', {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        name:  name,
-        phone: fullPhone,
-        email: email,
-        line:  line || '',
-        waNum: num,
-        staff: _waNames[_idx] || ''
-      })
-    }).catch(()=>{});
+    // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
+    const _params2 = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||''});
+    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec?'+_params2.toString())
+      .catch(()=>{});
 
     window.open('https://wa.me/'+num+'?text='+msg,'_blank');
   }
@@ -979,13 +969,10 @@
     // ── 构建预填消息 ──
     const msg = encodeURIComponent(`老师您好，我想预约《播种幸福4天营》直播课学习，我是：${name}`);
 
-    // ── 发送到 Google Sheets ──
-    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec', {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||''})
-    }).catch(()=>{});
+    // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
+    const _params = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||''});
+    fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec?'+_params.toString())
+      .catch(()=>{});
 
     // ── 自动跳转 WhatsApp（直接触发，不经过异步） ──
     window.open('https://wa.me/'+num+'?text='+msg, '_blank');
