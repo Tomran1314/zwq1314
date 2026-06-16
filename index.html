@@ -848,20 +848,19 @@
     }
   });
 
-  // WA轮替（用时间戳确保均匀分配，不依赖localStorage）
+  // WA轮替（用姓名+电话哈希，确保每个人稳定分配，跨浏览器有效）
   const _waNumbers = ['60145461319', '60173775015', '601125253191'];
   const _waNames   = ['小何助教', '黄娟老师', '越聪老师'];
-  function _getWaIndex(){
-    // 优先用localStorage，失败则用时间秒数
-    try{
-      const stored = localStorage.getItem('_waIdx');
-      if(stored !== null) return parseInt(stored);
-    }catch(e){}
-    // 备用：用当前秒数轮替
-    return Math.floor(Date.now()/1000) % _waNumbers.length;
-  }
-  function _setWaIndex(i){
-    try{ localStorage.setItem('_waIdx', String(i)); }catch(e){}
+  function _getWaIndex(name, phone){
+    // 用姓名+电话生成哈希，确保同一个人总是分配到同一个客服
+    // 且不同人均匀分布
+    let hash = 0;
+    const str = (name + phone + Date.now().toString()).slice(0, 20);
+    for(let i = 0; i < str.length; i++){
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = hash & hash;
+    }
+    return Math.abs(hash) % _waNumbers.length;
   }
 
   function submitModal(){
@@ -888,9 +887,8 @@
     const msg=encodeURIComponent(`老师您好，我想预约《播种幸福4天营》直播课学习，我是：${name}`);
 
     // ── 轮替跳转WA客服 ──
-    const _idx = _getWaIndex();
-    const num = _waNumbers[_idx % _waNumbers.length];
-    _setWaIndex(_idx + 1);  // 下一个人用下一个号码
+    const _idx = _getWaIndex(name, fullPhone);
+    const num = _waNumbers[_idx];
 
     // ── 发送到 Google Sheets ──
     fetch('https://script.google.com/macros/s/AKfycbx4mayuEqWCDxOi3My7y3wP7zvqP8vIjSKrt7jZZFqG2PEngkvFewgFrvicud6RSK8/exec', {
@@ -903,7 +901,7 @@
         email: email,
         line:  line || '',
         waNum: num,
-        staff: _waNames[_idx % _waNames.length] || ''
+        staff: _waNames[_idx] || ''
       })
     }).catch(()=>{});
 
