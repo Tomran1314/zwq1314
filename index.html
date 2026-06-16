@@ -4,6 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>播种幸福4天营 · 汇成百年 · 免费线上直播</title>
+
+  <!-- OG / WhatsApp / 社媒分享预览 -->
+  <meta property="og:title" content="播种幸福4天营 · 周文强 × 杨韵冉老师" />
+  <meta property="og:description" content="6月21–24日，每晚7:00 线上Zoom直播。财富生长·关系流动·事业开花·内在安定。原价RM399，周年庆免费！" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/Tomran1314/zwq1314/main/poster.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://zwq1314.com" />
+  <meta property="og:site_name" content="汇成百年 HUICHENG" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="播种幸福4天营 · 免费线上直播" />
+  <meta name="twitter:description" content="6月21–24日每晚7:00，周文强×杨韵冉老师携手引领，免费报名！" />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/Tomran1314/zwq1314/main/poster.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -744,7 +760,7 @@
       if(rec){
         const d = JSON.parse(rec);
         const msg = encodeURIComponent('老师您好，我想预约《播种幸福4天营》直播课学习，我是：'+(d.name||''));
-        window.open('https://wa.me/'+d.num+'?text='+msg,'_blank');
+        window.open('https://wa.me/'+(d.num||'60145461319')+'?text='+msg,'_blank');
         return;
       }
     } catch(e){}
@@ -829,9 +845,14 @@
     }
   });
 
-  // WA轮替全局index
-  let _waRotateIndex = 0;
+  // WA轮替全局index（用localStorage持久化，跨会话保持轮替）
   const _waNumbers = ['60145461319', '60173775015'];
+  function _getWaIndex(){
+    try{ return parseInt(localStorage.getItem('_waIdx')||'0'); }catch(e){ return 0; }
+  }
+  function _setWaIndex(i){
+    try{ localStorage.setItem('_waIdx', String(i)); }catch(e){}
+  }
 
   function submitModal(){
     const name=document.getElementById('m-name').value.trim();
@@ -896,11 +917,27 @@
     const msg=encodeURIComponent(`老师您好，我想预约《播种幸福4天营》直播课学习，我是：${name}`);
 
     // ── 轮替跳转WA客服 ──
-    const num = _waNumbers[_waRotateIndex % _waNumbers.length];
-    _waRotateIndex++;
+    const _idx = _getWaIndex();
+    const num = _waNumbers[_idx % _waNumbers.length];
+    _setWaIndex(_idx + 1);  // 下一个人用下一个号码
 
-    // 保存记录防重复
+    // 保存本次记录（防重复用）
     try{ sessionStorage.setItem('zwq_reg', JSON.stringify({name:name, num:num})); }catch(e){}
+
+    // ── 发送到 Google Sheets ──
+    fetch('https://script.google.com/macros/s/AKfycbyLtB5q5Jpb9f6E5RBCMOHhWc9OSGn8iF_aakLT9YNTvvzzmA_lc3rMn6NSyofSOfE/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name:  name,
+        phone: fullPhone,
+        email: email,
+        line:  line || '',
+        waNum: num
+      })
+    }).catch(()=>{});
+
     window.open('https://wa.me/'+num+'?text='+msg,'_blank');
   }
 
