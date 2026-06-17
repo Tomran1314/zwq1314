@@ -940,7 +940,13 @@
     fetch('https://script.google.com/macros/s/AKfycbx2ALJ52uGps4wAANJDmqDRJrE9RkTn32b98jfpoeOKr19-23umVJoHVX73Vack82k/exec?'+_params2.toString())
       .catch(()=>{});
 
-    window.open('https://wa.me/'+num+'?text='+msg,'_blank');
+    // ── Meta Pixel 转换追踪 ──
+    if(typeof fbq === 'function'){
+      fbq('track', 'CompleteRegistration');
+    }
+
+    // ── 延迟500ms跳转，确保 Pixel 发送完成 ──
+    setTimeout(function(){ window.open('https://wa.me/'+num+'?text='+msg,'_blank'); }, 500);
   }
 
   // COUNTDOWN — 目标：2026年6月21日 19:00 吉隆坡时间（UTC+8）
@@ -991,11 +997,13 @@
     fetch('https://script.google.com/macros/s/AKfycbx2ALJ52uGps4wAANJDmqDRJrE9RkTn32b98jfpoeOKr19-23umVJoHVX73Vack82k/exec?'+_params.toString())
       .catch(()=>{});
 
-    // ── 自动跳转 WhatsApp（直接触发，不经过异步） ──
-    window.open('https://wa.me/'+num+'?text='+msg, '_blank');
+    // ── Meta Pixel 转换追踪（先触发，再跳转） ──
+    if(typeof fbq === 'function'){
+      fbq('track', 'CompleteRegistration');
+    }
 
-    // ── Meta Pixel 转换追踪 ──
-    if(typeof fbq === 'function') fbq('track', 'SubmitApplication');
+    // ── 自动跳转 WhatsApp（延迟500ms，确保 Pixel 发送完成） ──
+    setTimeout(function(){ window.open('https://wa.me/'+num+'?text='+msg, '_blank'); }, 500);
 
     // ── 显示感谢弹窗 ──
     document.getElementById('thank-name').textContent = name;
