@@ -994,6 +994,9 @@
     // ── 自动跳转 WhatsApp（直接触发，不经过异步） ──
     window.open('https://wa.me/'+num+'?text='+msg, '_blank');
 
+    // ── Meta Pixel 转换追踪 ──
+    if(typeof fbq === 'function') fbq('track', 'SubmitApplication');
+
     // ── 显示感谢弹窗 ──
     document.getElementById('thank-name').textContent = name;
     document.getElementById('thank-phone').textContent = fullPhone;
