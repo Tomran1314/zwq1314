@@ -38,6 +38,17 @@
   /></noscript>
   <!-- End Meta Pixel Code -->
 
+  <!-- Google Tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16523264778"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag("js", new Date());
+    gtag("config", "AW-16523264778");
+    gtag("config", "GT-K8FZ527K");
+  </script>
+  <!-- End Google Tag -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -945,7 +956,12 @@
       fbq('track', 'CompleteRegistration');
     }
 
-    // ── 延迟500ms跳转，确保 Pixel 发送完成 ──
+    // ── Google Ads 转换追踪 ──
+    if(typeof gtag === 'function'){
+      gtag('event', 'conversion', {'send_to': 'AW-16523264778/submit_form'});
+    }
+
+    // ── 延迟500ms跳转，确保追踪发送完成 ──
     setTimeout(function(){ window.open('https://wa.me/'+num+'?text='+msg,'_blank'); }, 500);
   }
 
@@ -1002,7 +1018,12 @@
       fbq('track', 'CompleteRegistration');
     }
 
-    // ── 自动跳转 WhatsApp（延迟500ms，确保 Pixel 发送完成） ──
+    // ── Google Ads 转换追踪 ──
+    if(typeof gtag === 'function'){
+      gtag('event', 'conversion', {'send_to': 'AW-16523264778/submit_form'});
+    }
+
+    // ── 自动跳转 WhatsApp（延迟500ms，确保追踪发送完成） ──
     setTimeout(function(){ window.open('https://wa.me/'+num+'?text='+msg, '_blank'); }, 500);
 
     // ── 显示感谢弹窗 ──
