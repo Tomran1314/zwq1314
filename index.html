@@ -958,7 +958,8 @@
 
     // ── Google Ads 转换追踪 ──
     if(typeof gtag === 'function'){
-      gtag('event', 'conversion', {'send_to': 'AW-16523264778/submit_form'});
+      gtag('event', 'generate_lead', {'send_to': 'AW-16523264778'});
+      gtag('event', 'conversion', {'send_to': 'AW-16523264778'});
     }
 
     // ── 延迟500ms跳转，确保追踪发送完成 ──
@@ -1020,7 +1021,8 @@
 
     // ── Google Ads 转换追踪 ──
     if(typeof gtag === 'function'){
-      gtag('event', 'conversion', {'send_to': 'AW-16523264778/submit_form'});
+      gtag('event', 'generate_lead', {'send_to': 'AW-16523264778'});
+      gtag('event', 'conversion', {'send_to': 'AW-16523264778'});
     }
 
     // ── 自动跳转 WhatsApp（延迟500ms，确保追踪发送完成） ──
