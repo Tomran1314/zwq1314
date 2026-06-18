@@ -39,7 +39,15 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .hdr-actions{display:flex;gap:8px;align-items:center}
 .hdr-user{background:rgba(255,255,255,0.2);color:#fff;padding:5px 12px;border-radius:20px;font-size:0.76rem;font-weight:500}
 .hdr-logout{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.35);padding:5px 12px;border-radius:20px;font-size:0.76rem;cursor:pointer}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,0.15);border-radius:14px;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,0.15);border-radius:14px;overflow:hidden;margin-bottom:8px}
+.stat{text-align:center;padding:10px 4px}
+.stat-n{font-size:1.4rem;font-weight:700;color:#fff;line-height:1}
+.stat-l{font-size:0.62rem;color:rgba(255,255,255,0.82);margin-top:3px}
+.staff-stats{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px}
+.staff-stat-btn{flex:1;min-width:calc(50% - 6px);background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:7px 10px;text-align:center;cursor:pointer;transition:all 0.2s}
+.staff-stat-btn:hover,.staff-stat-btn.active{background:rgba(255,255,255,0.35);border-color:rgba(255,255,255,0.6)}
+.staff-stat-btn .sn{font-size:1.1rem;font-weight:700;color:#fff;line-height:1}
+.staff-stat-btn .sl{font-size:0.65rem;color:rgba(255,255,255,0.85);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat{text-align:center;padding:10px 4px}
 .stat-n{font-size:1.4rem;font-weight:700;color:#fff;line-height:1}
 .stat-l{font-size:0.62rem;color:rgba(255,255,255,0.82);margin-top:3px}
@@ -159,6 +167,7 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
       <div class="stat"><div class="stat-n" id="st-contacted">–</div><div class="stat-l">已联系</div></div>
       <div class="stat"><div class="stat-n" id="st-converted">–</div><div class="stat-l">已成交</div></div>
     </div>
+    <div class="staff-stats" id="staff-stats" style="display:none;margin-top:10px;display:none"></div>
   </div>
 
   <div class="toolbar">
@@ -308,7 +317,24 @@ async function loadData(){
     const data=await res.json();
     allRows=data.slice(1).map((cols,i)=>{
       const val=idx=>String(cols[idx]||'').trim();
-      return{idx:i+1,time:val(0),name:val(1),phone:val(2),email:val(3),line:val(4),waNum:val(5),staff:val(6)};
+      const rawTime = val(0);
+      let time = rawTime;
+      try {
+        // 支持 "2026/6/18 下午 1:39:08" 格式
+        const m = rawTime.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})\s*(上午|下午)\s*(\d{1,2}):(\d{2})/);
+        if (m) {
+          let h = parseInt(m[5]);
+          if (m[4]==='下午' && h<12) h+=12;
+          if (m[4]==='上午' && h===12) h=0;
+          time = `${m[1]}/${m[2]}/${m[3]} ${String(h).padStart(2,'0')}:${m[6]}`;
+        } else {
+          const d = new Date(rawTime);
+          if (!isNaN(d)) {
+            time = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          }
+        }
+      } catch(e) {}
+      return{idx:i+1,time,name:val(1),phone:val(2),email:val(3),line:val(4),waNum:val(5),staff:val(6)};
     }).filter(r=>r.name||r.phone);
     if(currentUser.role==='staff') allRows=allRows.filter(r=>r.staff===currentUser.staff);
     applyFilters();
@@ -328,9 +354,38 @@ function updateStats(){
   document.getElementById('st-new').textContent=n;
   document.getElementById('st-contacted').textContent=c;
   document.getElementById('st-converted').textContent=cv;
+
+  // 管理员显示客服分类统计
+  const staffStatsEl=document.getElementById('staff-stats');
+  if(currentUser.role==='admin'){
+    const staffList=['小何助教','黄娟老师','越聪老师','大鹏老师'];
+    const counts={};
+    staffList.forEach(st=>counts[st]=0);
+    allRows.forEach(r=>{ if(counts[r.staff]!==undefined) counts[r.staff]++; });
+    staffStatsEl.style.display='flex';
+    staffStatsEl.innerHTML=staffList.map(st=>`
+      <div class="staff-stat-btn ${currentFilter==='staff-'+st?'active':''}" onclick="filterByStaff('${st}')">
+        <div class="sn">${counts[st]}</div>
+        <div class="sl">${st}</div>
+      </div>`).join('');
+  } else {
+    staffStatsEl.style.display='none';
+  }
 }
 
 // FILTER
+function filterByStaff(staff){
+  if(currentFilter==='staff-'+staff){
+    // 再次点击取消筛选
+    currentFilter='all';
+    document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.fbtn').classList.add('active');
+  } else {
+    currentFilter='staff-'+staff;
+    document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  }
+  currentPage=1;applyFilters();
+}
 function setFilter(val,btn){
   if(val==='tag'){openTagFilterModal();return;}
   currentFilter=val;activeTagFilter=null;
@@ -344,7 +399,7 @@ function applyFilters(){
   filteredRows=allRows.filter(r=>{
     const mq=!q||[r.name,r.phone,r.email,r.staff,r.line,...(tm[r.phone]||[])].some(v=>String(v).toLowerCase().includes(q));
     const st=s[r.phone]||'未联系';
-    const mf=currentFilter==='all'||st===currentFilter;
+    const mf=currentFilter==='all'||st===currentFilter||(currentFilter.startsWith('staff-')&&r.staff===currentFilter.replace('staff-',''));
     const mt=!activeTagFilter||(tm[r.phone]||[]).includes(activeTagFilter);
     return mq&&mf&&mt;
   });
