@@ -596,7 +596,7 @@
       </div>
 
       <div class="form-group">
-        <label>Line ID <span class="optional">（选填）</span></label>
+        <label id="f-line-label">Line ID <span class="optional" id="f-line-hint">（选填）</span></label>
         <input type="text" id="f-line" placeholder="你的 Line ID（选填）" />
       </div>
 
@@ -743,7 +743,7 @@
         <input type="email" id="m-email" placeholder="your@email.com" />
       </div>
       <div class="form-group">
-        <label>Line ID <span style="color:var(--text-soft);font-size:0.74rem">（选填）</span></label>
+        <label id="m-line-label">Line ID <span style="color:var(--text-soft);font-size:0.74rem" id="m-line-hint">（选填）</span></label>
         <input type="text" id="m-line" placeholder="你的 Line ID（选填）" />
       </div>
       <button class="form-submit shimmer-btn" onclick="submitModal()" style="margin-top:4px">🌸 立即报名 · 限时 0 元免费</button>
@@ -926,6 +926,7 @@
     const email=document.getElementById('m-email').value.trim();
     const line=document.getElementById('m-line').value.trim();
     if(!name||!phone||!email){alert('请填写姓名、WhatsApp 号码和电子邮箱 🌸');return;}
+    if(country==='+886'&&!line){alert('台湾学员请填写 Line ID 🌸');document.getElementById('m-line').focus();return;}
     if(!isValidPhone(document.getElementById('m-country').value, phone)){
       document.getElementById('phone-error').style.display='block';
       document.getElementById('m-phone').focus();
@@ -987,8 +988,24 @@
     document.getElementById('cd-mins').textContent=String(m).padStart(2,'0');
     document.getElementById('cd-secs').textContent=String(s).padStart(2,'0');
   }
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
+    // ── Line ID 必填/选填动态切换（台湾必填）──
+    function updateLineRequired(countryVal, prefix) {
+      const isTW = countryVal === '+886';
+      const hint = document.getElementById(prefix+'-line-hint');
+      const input = document.getElementById(prefix+'-line');
+      if (hint) hint.textContent = isTW ? '（必填）' : '（选填）';
+      if (input) input.placeholder = isTW ? '请填写你的 Line ID（必填）' : '你的 Line ID（选填）';
+    }
+    const fCountry = document.getElementById('f-country');
+    if (fCountry) {
+      fCountry.addEventListener('change', function(){ updateLineRequired(this.value, 'f'); });
+      updateLineRequired(fCountry.value, 'f');
+    }
+    const mCountry = document.getElementById('m-country');
+    if (mCountry) {
+      mCountry.addEventListener('change', function(){ updateLineRequired(this.value, 'm'); });
+      updateLineRequired(mCountry.value, 'm');
+    }
 
   // FORM → 感谢页面 + 自动跳转 WhatsApp
   function submitForm(){
@@ -1000,6 +1017,7 @@
     if(!name||!phone||!email){
       alert('请填写姓名、WhatsApp 号码和电子邮箱 🌸');return;
     }
+    if(country==='+886'&&!line){alert('台湾学员请填写 Line ID 🌸');document.getElementById('f-line').focus();return;}
     const fullPhone=country+phone;
 
     // ── WA 轮替分配 ──
