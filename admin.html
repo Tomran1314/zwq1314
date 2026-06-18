@@ -267,18 +267,23 @@ function gm(k){try{return JSON.parse(localStorage.getItem(sk(k))||'{}')}catch(e)
 function sm(k,v){localStorage.setItem(sk(k),JSON.stringify(v));}
 
 // LOGIN
-function doLogin(){
-  const u=document.getElementById('lu').value.trim().toLowerCase();
-  const p=document.getElementById('lp').value;
-  const acc=ACCOUNTS[u];
-  if(!acc||acc.pass!==p){document.getElementById('lerr').style.display='block';return;}
+function enterApp(u, acc){
   currentUser={username:u,...acc};
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   document.getElementById('hdr-user').textContent=currentUser.name;
   loadData();
 }
+function doLogin(){
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value;
+  const acc=ACCOUNTS[u];
+  if(!acc||acc.pass!==p){document.getElementById('lerr').style.display='block';return;}
+  localStorage.setItem('hc_session', JSON.stringify({username:u}));
+  enterApp(u, acc);
+}
 function doLogout(){
+  localStorage.removeItem('hc_session');
   currentUser=null;allRows=[];filteredRows=[];
   document.getElementById('app-screen').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -286,6 +291,13 @@ function doLogout(){
   document.getElementById('lp').value='';
   document.getElementById('lerr').style.display='none';
 }
+// 自动恢复登录状态
+(function(){
+  try{
+    const s=JSON.parse(localStorage.getItem('hc_session')||'null');
+    if(s&&s.username&&ACCOUNTS[s.username]) enterApp(s.username, ACCOUNTS[s.username]);
+  }catch(e){}
+})();
 
 // LOAD DATA
 async function loadData(){
