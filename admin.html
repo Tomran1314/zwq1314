@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>播种幸福 · 客户管理后台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --rose:#E8899A; --deep-rose:#C45C72; --gold:#C9974A; --gold-light:#F0D9B5;
+    --warm-white:#FFFAF7; --bg:#F7F0F2; --text-dark:#2D1A1F;
+    --text-mid:#6B3F4A; --text-soft:#A07080; --border:#EDD5DC; --card:#fff;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text-dark);min-height:100vh}
+
+  /* ── LOGIN ── */
+  #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#ffe4ec 0%,#fff0f5 50%,#fff8ee 100%)}
+  .login-card{background:#fff;border-radius:24px;padding:40px 36px;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(196,92,114,0.18);text-align:center}
+  .login-logo{font-size:2.2rem;margin-bottom:8px}
+  .login-title{font-size:1.15rem;font-weight:700;color:var(--text-dark);margin-bottom:4px}
+  .login-sub{font-size:0.82rem;color:var(--text-soft);margin-bottom:28px}
+  .login-field{margin-bottom:14px;text-align:left}
+  .login-field label{display:block;font-size:0.8rem;color:var(--text-mid);margin-bottom:5px;font-weight:500}
+  .login-field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:0.9rem;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border 0.2s}
+  .login-field input:focus{border-color:var(--rose)}
+  .login-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--deep-rose),var(--gold));color:#fff;border:none;border-radius:12px;font-size:1rem;font-family:'Noto Sans SC',sans-serif;font-weight:600;cursor:pointer;margin-top:6px;transition:opacity 0.2s}
+  .login-btn:hover{opacity:0.88}
+  .login-error{color:#C62828;font-size:0.82rem;margin-top:10px;display:none}
+
+  /* ── APP ── */
+  #app-screen{display:none}
+  .header{background:linear-gradient(135deg,var(--deep-rose),#d4748a,var(--gold));padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .header-left .title{color:#fff;font-size:1.1rem;font-weight:700}
+  .header-left .sub{color:rgba(255,255,255,0.8);font-size:0.76rem;margin-top:2px}
+  .header-right{display:flex;align-items:center;gap:16px}
+  .user-badge{background:rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:20px;font-size:0.82rem;font-weight:500}
+  .logout-btn{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.4);padding:6px 14px;border-radius:20px;font-size:0.82rem;cursor:pointer;transition:background 0.2s}
+  .logout-btn:hover{background:rgba(255,255,255,0.28)}
+
+  .stats-bar{display:flex;gap:0;background:var(--card);border-bottom:1px solid var(--border)}
+  .stat-item{flex:1;text-align:center;padding:16px 8px;border-right:1px solid var(--border)}
+  .stat-item:last-child{border-right:none}
+  .stat-num{font-size:1.6rem;font-weight:700;color:var(--deep-rose);line-height:1}
+  .stat-lbl{font-size:0.72rem;color:var(--text-soft);margin-top:4px}
+
+  .toolbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .search-wrap{flex:1;min-width:180px;position:relative}
+  .search-wrap input{width:100%;padding:9px 14px 9px 36px;border:1.5px solid var(--border);border-radius:10px;font-size:0.86rem;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border 0.2s}
+  .search-wrap input:focus{border-color:var(--rose)}
+  .search-wrap::before{content:'🔍';position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.82rem}
+  .filter-btns{display:flex;gap:6px;flex-wrap:wrap}
+  .fbtn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:0.8rem;font-family:'Noto Sans SC',sans-serif;cursor:pointer;transition:all 0.2s;color:var(--text-mid)}
+  .fbtn:hover{border-color:var(--rose);color:var(--deep-rose)}
+  .fbtn.active{background:var(--deep-rose);color:#fff;border-color:var(--deep-rose)}
+  .refresh-btn{padding:8px 16px;background:linear-gradient(135deg,var(--deep-rose),var(--gold));color:#fff;border:none;border-radius:10px;font-size:0.82rem;font-family:'Noto Sans SC',sans-serif;cursor:pointer;white-space:nowrap}
+
+  .table-wrap{padding:16px 20px}
+  .table-box{background:var(--card);border-radius:16px;box-shadow:0 2px 16px rgba(196,92,114,0.08);overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  thead tr{background:linear-gradient(135deg,#FFF0F3,#FFF8EE)}
+  th{padding:12px 14px;text-align:left;font-size:0.76rem;font-weight:600;color:var(--text-mid);letter-spacing:0.05em;border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:11px 14px;font-size:0.84rem;border-bottom:1px solid #FDF0F3;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#FFF8FA}
+  .time-cell{color:var(--text-soft);font-size:0.78rem;white-space:nowrap}
+  .wa-link{color:var(--deep-rose);text-decoration:none;font-weight:500}
+  .wa-link:hover{text-decoration:underline}
+  .staff-tag{font-size:0.8rem;color:var(--deep-rose);font-weight:500}
+  .status-select{padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);font-size:0.78rem;font-family:'Noto Sans SC',sans-serif;cursor:pointer;background:#fff;outline:none}
+  .note-btn{padding:4px 10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:0.76rem;cursor:pointer;color:var(--text-mid);white-space:nowrap;transition:all 0.2s}
+  .note-btn:hover{border-color:var(--rose);color:var(--deep-rose)}
+  .has-note{border-color:var(--gold)!important;color:var(--gold)!important}
+
+  .empty-msg{text-align:center;padding:50px 20px;color:var(--text-soft)}
+  .empty-msg .icon{font-size:2.4rem;margin-bottom:10px}
+
+  /* ── PAGINATION ── */
+  .pagination{display:flex;gap:6px;justify-content:center;padding:16px;align-items:center;flex-wrap:wrap}
+  .pbtn{padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:0.82rem;cursor:pointer;color:var(--text-mid);transition:all 0.2s}
+  .pbtn:hover:not(:disabled){border-color:var(--rose);color:var(--deep-rose)}
+  .pbtn.active{background:var(--deep-rose);color:#fff;border-color:var(--deep-rose)}
+  .pbtn:disabled{opacity:0.35;cursor:default}
+  .pinfo{font-size:0.8rem;color:var(--text-soft);padding:0 4px}
+
+  /* ── NOTE MODAL ── */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(45,26,31,0.45);z-index:300;align-items:center;justify-content:center}
+  .modal-bg.show{display:flex}
+  .modal-box{background:#fff;border-radius:20px;padding:26px 22px;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(196,92,114,0.25)}
+  .modal-title{font-size:1rem;font-weight:700;margin-bottom:4px}
+  .modal-sub{font-size:0.82rem;color:var(--text-soft);margin-bottom:14px}
+  .modal-ta{width:100%;min-height:90px;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:0.86rem;font-family:'Noto Sans SC',sans-serif;resize:vertical;outline:none}
+  .modal-ta:focus{border-color:var(--rose)}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+  .btn-cancel{padding:8px 18px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:0.84rem;font-family:'Noto Sans SC',sans-serif;cursor:pointer;color:var(--text-mid)}
+  .btn-save{padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--deep-rose),var(--gold));color:#fff;font-size:0.84rem;font-family:'Noto Sans SC',sans-serif;cursor:pointer}
+
+  .error-bar{background:#FFF3F3;border:1px solid #FFCDD2;border-radius:10px;padding:10px 16px;color:#C62828;font-size:0.83rem;margin:12px 20px;display:none}
+
+  @media(max-width:680px){
+    .hide-m{display:none}
+    .stats-bar{flex-wrap:wrap}
+    .stat-item{min-width:50%}
+    th,td{padding:9px 10px}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🌸</div>
+    <div class="login-title">播种幸福4天营</div>
+    <div class="login-sub">客户管理后台 · 汇成百年</div>
+    <div class="login-field">
+      <label>用户名</label>
+      <input type="text" id="login-user" placeholder="输入用户名" autocomplete="username"/>
+    </div>
+    <div class="login-field">
+      <label>密码</label>
+      <input type="password" id="login-pass" placeholder="输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+    <div class="login-error" id="login-error">用户名或密码错误，请重试</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="header">
+    <div class="header-left">
+      <div class="title">🌸 播种幸福4天营 · 客户管理后台</div>
+      <div class="sub" id="header-sub">汇成百年 HUICHENG</div>
+    </div>
+    <div class="header-right">
+      <div class="user-badge" id="user-badge">–</div>
+      <button class="logout-btn" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num" id="st-total">–</div><div class="stat-lbl">总客户</div></div>
+    <div class="stat-item"><div class="stat-num" id="st-new" style="color:#E65100">–</div><div class="stat-lbl">未联系</div></div>
+    <div class="stat-item"><div class="stat-num" id="st-contacted" style="color:#1565C0">–</div><div class="stat-lbl">已联系</div></div>
+    <div class="stat-item"><div class="stat-num" id="st-converted" style="color:#2E7D32">–</div><div class="stat-lbl">已成交</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="text" id="search-inp" placeholder="搜索姓名、WhatsApp、邮箱…" oninput="applyFilters()"/>
+    </div>
+    <div class="filter-btns">
+      <button class="fbtn active" onclick="setFilter('all',this)">全部</button>
+      <button class="fbtn" onclick="setFilter('未联系',this)">未联系</button>
+      <button class="fbtn" onclick="setFilter('已联系',this)">已联系</button>
+      <button class="fbtn" onclick="setFilter('已成交',this)">已成交</button>
+    </div>
+    <button class="refresh-btn" onclick="loadData()">🔄 刷新</button>
+  </div>
+
+  <div class="error-bar" id="err-bar"></div>
+
+  <div class="table-wrap">
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>时间</th>
+            <th>姓名</th>
+            <th>WhatsApp</th>
+            <th class="hide-m">邮箱</th>
+            <th class="hide-m">Line ID</th>
+            <th id="th-staff">负责客服</th>
+            <th>跟进状态</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-bg" id="note-modal">
+  <div class="modal-box">
+    <div class="modal-title">📝 跟进备注</div>
+    <div class="modal-sub" id="note-name"></div>
+    <textarea class="modal-ta" id="note-ta" placeholder="输入备注内容…"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeNote()">取消</button>
+      <button class="btn-save" onclick="saveNote()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  ACCOUNTS
+// ══════════════════════════════════════
+const ACCOUNTS = {
+  'tomran':    { pass:'131419', name:'Tom Ran（管理员）', staff:null,    role:'admin' },
+  'xiaohe':    { pass:'he1234', name:'小何助教',          staff:'小何助教', role:'staff' },
+  'huangjuan': { pass:'hj1234', name:'黄娟老师',          staff:'黄娟老师', role:'staff' },
+  'yuecong':   { pass:'yc1234', name:'越聪老师',          staff:'越聪老师', role:'staff' },
+  'dapeng':    { pass:'dp1234', name:'大鹏老师',          staff:'大鹏老师', role:'staff' },
+};
+
+// ══════════════════════════════════════
+//  SHEET
+// ══════════════════════════════════════
+const SHEET_ID = '1t5GNEWx3pi8fF0SYm6-NhRNhn-nONP--6Fgz3N3M9n8';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyxjh7U0A_MDGDZ1ProYw1JXqEZzbztXtSEWYpD8Gjyz2X_O5lgxJPqBus-8OWU3oc/exec';
+const PAGE_SIZE = 20;
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let currentUser = null;
+let allRows = [];
+let filteredRows = [];
+let currentPage = 1;
+let currentFilter = 'all';
+let activePhone = null;
+
+function storageKey(key) { return `hc_${currentUser.username}_${key}`; }
+function getMap(key)     { try{ return JSON.parse(localStorage.getItem(storageKey(key))||'{}'); }catch(e){ return {}; } }
+function setMap(key,val) { localStorage.setItem(storageKey(key), JSON.stringify(val)); }
+
+// ══════════════════════════════════════
+//  LOGIN / LOGOUT
+// ══════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim().toLowerCase();
+  const p = document.getElementById('login-pass').value;
+  const acc = ACCOUNTS[u];
+  if (!acc || acc.pass !== p) {
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  currentUser = { username: u, ...acc };
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('user-badge').textContent = currentUser.name;
+  document.getElementById('header-sub').textContent =
+    currentUser.role === 'admin' ? '管理员 · 查看全部客户' : `${currentUser.name} · 我的客户名单`;
+  // 管理员显示负责客服列，员工隐藏
+  document.getElementById('th-staff').style.display = currentUser.role === 'admin' ? '' : 'none';
+  loadData();
+}
+
+function doLogout() {
+  currentUser = null;
+  allRows = []; filteredRows = [];
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+// ══════════════════════════════════════
+//  LOAD DATA
+// ══════════════════════════════════════
+async function loadData() {
+  document.getElementById('tbody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-soft)">⏳ 正在加载数据…</td></tr>`;
+  document.getElementById('err-bar').style.display = 'none';
+  try {
+    const res = await fetch(SHEET_URL);
+    const data = await res.json();
+    const dataRows = data.slice(1);
+    allRows = dataRows.map((cols, i) => {
+      const val = idx => String(cols[idx]||'').trim();
+      return {
+        idx: i+1,
+        time: val(0),
+        name: val(1),
+        phone: val(2),
+        email: val(3),
+        line: val(4),
+        waNum: val(5),
+        staff: val(6)
+      };
+    }).filter(r => r.name || r.phone);
+
+    // 权限过滤
+    if (currentUser.role === 'staff') {
+      allRows = allRows.filter(r => r.staff === currentUser.staff);
+    }
+    applyFilters();
+  } catch(e) {
+    const eb = document.getElementById('err-bar');
+    eb.style.display = 'block';
+    eb.textContent = '⚠️ 无法加载数据，请确认 Google Sheets 已设置为"任何人可查看"，然后点击刷新。';
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="9"><div class="empty-msg"><div class="icon">😅</div><p>加载失败，请重试</p></div></td></tr>`;
+  }
+}
+
+// ══════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════
+function updateStats() {
+  const sm = getMap('status');
+  let n=0, c=0, cv=0;
+  allRows.forEach(r => {
+    const s = sm[r.phone] || '未联系';
+    if(s==='未联系') n++;
+    else if(s==='已联系') c++;
+    else cv++;
+  });
+  document.getElementById('st-total').textContent = allRows.length;
+  document.getElementById('st-new').textContent = n;
+  document.getElementById('st-contacted').textContent = c;
+  document.getElementById('st-converted').textContent = cv;
+}
+
+// ══════════════════════════════════════
+//  FILTER
+// ══════════════════════════════════════
+function setFilter(val, btn) {
+  currentFilter = val;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPage = 1;
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('search-inp').value.toLowerCase();
+  const sm = getMap('status');
+  filteredRows = allRows.filter(r => {
+    const matchQ = !q || [r.name,r.phone,r.email,r.staff,r.line].some(v=>v.toLowerCase().includes(q));
+    const status = sm[r.phone] || '未联系';
+    const matchF = currentFilter==='all' || status===currentFilter;
+    return matchQ && matchF;
+  });
+  currentPage = 1;
+  updateStats();
+  renderTable();
+  renderPagination();
+}
+
+// ══════════════════════════════════════
+//  RENDER TABLE
+// ══════════════════════════════════════
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  if (!filteredRows.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-msg"><div class="icon">🌸</div><p>暂无匹配客户</p></div></td></tr>`;
+    return;
+  }
+  const sm = getMap('status');
+  const nm = getMap('notes');
+  const start = (currentPage-1)*PAGE_SIZE;
+  const slice = filteredRows.slice(start, start+PAGE_SIZE);
+  const isAdmin = currentUser.role === 'admin';
+  const statusColor = { '未联系':'#E65100', '已联系':'#1565C0', '已成交':'#2E7D32' };
+
+  tbody.innerHTML = slice.map((r,i) => {
+    const status = sm[r.phone] || '未联系';
+    const note = nm[r.phone] || '';
+    const waHref = r.phone ? `https://wa.me/${r.phone.replace(/\D/g,'')}` : '#';
+    return `<tr>
+      <td style="color:var(--text-soft);font-size:0.76rem">${start+i+1}</td>
+      <td class="time-cell">${r.time}</td>
+      <td style="font-weight:500">${esc(r.name)}</td>
+      <td><a class="wa-link" href="${waHref}" target="_blank">${r.phone}</a></td>
+      <td class="hide-m" style="color:var(--text-mid);font-size:0.8rem">${esc(r.email)}</td>
+      <td class="hide-m" style="color:var(--text-mid);font-size:0.8rem">${r.line||'–'}</td>
+      <td style="display:${isAdmin?'':'none'}"><span class="staff-tag">${esc(r.staff)||'–'}</span></td>
+      <td>
+        <select class="status-select" onchange="setStatus('${esc(r.phone)}',this.value)"
+          style="border-color:${statusColor[status]};color:${statusColor[status]}">
+          <option value="未联系" ${status==='未联系'?'selected':''}>未联系</option>
+          <option value="已联系" ${status==='已联系'?'selected':''}>已联系</option>
+          <option value="已成交" ${status==='已成交'?'selected':''}>已成交</option>
+        </select>
+      </td>
+      <td><button class="note-btn ${note?'has-note':''}" onclick="openNote('${esc(r.phone)}','${esc(r.name)}')">${note?'📝 查看':'+ 备注'}</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(s){ return String(s||'').replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
+
+// ══════════════════════════════════════
+//  STATUS
+// ══════════════════════════════════════
+function setStatus(phone, val) {
+  const sm = getMap('status');
+  sm[phone] = val;
+  setMap('status', sm);
+  updateStats();
+}
+
+// ══════════════════════════════════════
+//  NOTE MODAL
+// ══════════════════════════════════════
+function openNote(phone, name) {
+  activePhone = phone;
+  document.getElementById('note-name').textContent = name;
+  const nm = getMap('notes');
+  document.getElementById('note-ta').value = nm[phone] || '';
+  document.getElementById('note-modal').classList.add('show');
+}
+function closeNote() {
+  document.getElementById('note-modal').classList.remove('show');
+  activePhone = null;
+}
+function saveNote() {
+  if (!activePhone) return;
+  const val = document.getElementById('note-ta').value.trim();
+  const nm = getMap('notes');
+  if (val) nm[activePhone] = val; else delete nm[activePhone];
+  setMap('notes', nm);
+  closeNote();
+  renderTable();
+}
+document.getElementById('note-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('note-modal')) closeNote();
+});
+
+// ══════════════════════════════════════
+//  PAGINATION
+// ══════════════════════════════════════
+function renderPagination() {
+  const total = Math.ceil(filteredRows.length/PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  if (total <= 1) { pg.innerHTML=''; return; }
+  let html = `<button class="pbtn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>← 上页</button>`;
+  for (let i=1; i<=total; i++) {
+    if (total>7 && i>2 && i<total-1 && Math.abs(i-currentPage)>1) {
+      if (i===3||i===total-2) html+=`<span class="pinfo">…</span>`;
+      continue;
+    }
+    html += `<button class="pbtn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button class="pbtn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>下页 →</button>`;
+  html += `<span class="pinfo">共 ${filteredRows.length} 条</span>`;
+  pg.innerHTML = html;
+}
+function goPage(p) {
+  const total = Math.ceil(filteredRows.length/PAGE_SIZE);
+  if (p<1||p>total) return;
+  currentPage = p;
+  renderTable();
+  renderPagination();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
