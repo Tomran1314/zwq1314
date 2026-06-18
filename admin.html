@@ -437,7 +437,8 @@ function applyTagFilter(){
 // WA MODAL
 function openWA(phone,name){
   activeWAPhone=phone;
-  const msg=`老师您好，我是《播种幸福4天营》的学员 ${name}，想跟您了解更多详情 🌸`;
+  const staffName=currentUser.staff||currentUser.name;
+  const msg=`同学您好，我是您这次《播种幸福4天营》的服务老师 ${staffName}，现在对接您学习 🌸`;
   document.getElementById('wa-sub').textContent=`发送给：${name} (${phone})`;
   document.getElementById('wa-preview').textContent=msg;
   document.getElementById('wa-ta').value=msg;
