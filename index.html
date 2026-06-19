@@ -1136,9 +1136,9 @@
       <div style="font-size:1.05rem;font-weight:700;color:#1a1a1a">一键联系客服</div>
       <div style="font-size:0.82rem;color:#888;margin-top:4px">填写号码，直接跳转 WhatsApp</div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
       <select id="wa-popup-country" onchange="toggleWALineField(this.value)" style="padding:12px 8px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.85rem;font-family:inherit;outline:none;background:#fff;flex-shrink:0">
-        <option value="+60">🇲🇾 +60</option>
+        <option value="+60" selected>🇲🇾 +60</option>
         <option value="+886">🇨🇳 +886</option>
         <option value="+65">🇸🇬 +65</option>
         <option value="+86">🇨🇳 +86</option>
@@ -1150,13 +1150,14 @@
       </select>
       <input id="wa-popup-phone" type="tel" placeholder="输入手机号码" style="flex:1;padding:12px 14px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.95rem;font-family:inherit;outline:none"/>
     </div>
-    <div id="wa-line-wrap" style="display:none;margin-bottom:14px">
+    <div id="wa-err-msg" style="display:none;color:#C62828;font-size:0.82rem;margin-bottom:8px;padding:8px 12px;background:#FFF3F3;border-radius:8px"></div>
+    <div id="wa-line-wrap" style="display:none;margin-bottom:8px">
       <input id="wa-popup-line" type="text" placeholder="请填写 Line ID（台湾必填）💚" style="width:100%;padding:12px 14px;border:1.5px solid #00B900;border-radius:12px;font-size:0.95rem;font-family:inherit;outline:none"/>
     </div>
-    <button onclick="submitWAPopup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:14px;font-size:1rem;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(37,211,102,0.35)">
+    <button onclick="submitWAPopup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:14px;font-size:1rem;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(37,211,102,0.35);margin-bottom:8px">
       📲 立即联系 WhatsApp
     </button>
-    <button onclick="closeWAPopup()" style="width:100%;padding:12px;background:none;border:none;color:#aaa;font-size:0.88rem;font-family:inherit;cursor:pointer;margin-top:8px">取消</button>
+    <button onclick="closeWAPopup()" style="width:100%;padding:12px;background:none;border:none;color:#aaa;font-size:0.88rem;font-family:inherit;cursor:pointer">取消</button>
   </div>
 </div>
 
@@ -1170,28 +1171,43 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk4STY5JMwJBIxLEDVOWM_ciCrAMnf45ThZfdxFSsbAgEWTj432n87bE2spptd8Pc/exec';
   const waMsg = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
 
-  document.getElementById('wa-float-btn').addEventListener('click', function(){
-    const saved = localStorage.getItem('_wa_num');
-    const savedPhone = localStorage.getItem('_wa_phone');
-    // 只有同时有客服号码和客户号码才直接跳转
-    if(saved && savedPhone){
-      fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+savedPhone+'&repeat=1').catch(()=>{});
-      window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
-      return;
-    }
-    // 否则弹出输入框
-    document.getElementById('wa-popup').classList.add('show');
-    setTimeout(()=>document.getElementById('wa-popup-phone').focus(), 300);
-  });
+  function initWABtn(){
+    const btn = document.getElementById('wa-float-btn');
+    const popup = document.getElementById('wa-popup');
+    if(!btn || !popup){ setTimeout(initWABtn, 200); return; }
 
-  // 点背景关闭
-  document.getElementById('wa-popup').addEventListener('click', function(e){
-    if(e.target===this) closeWAPopup();
-  });
+    btn.addEventListener('click', function(){
+      const saved = localStorage.getItem('_wa_num');
+      const savedPhone = localStorage.getItem('_wa_phone');
+      if(saved && savedPhone){
+        fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+savedPhone+'&repeat=1').catch(()=>{});
+        window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
+        return;
+      }
+      popup.style.display='flex';
+      setTimeout(()=>{ const el=document.getElementById('wa-popup-phone'); if(el) el.focus(); }, 300);
+    });
+
+    popup.addEventListener('click', function(e){
+      if(e.target===this) closeWAPopup();
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initWABtn);
+  } else {
+    initWABtn();
+  }
 
   window.closeWAPopup = function(){
-    document.getElementById('wa-popup').classList.remove('show');
+    document.getElementById('wa-popup').style.display='none';
   };
+
+  function showWAErr(msg){
+    const el=document.getElementById('wa-err-msg');
+    el.textContent=msg; el.style.display='block';
+    setTimeout(()=>el.style.display='none', 3000);
+  }
 
   window.toggleWALineField = function(country){
     const wrap = document.getElementById('wa-line-wrap');
@@ -1203,8 +1219,24 @@
     const country = document.getElementById('wa-popup-country').value;
     const phone = document.getElementById('wa-popup-phone').value.trim().replace(/\D/g,'');
     const line = document.getElementById('wa-popup-line').value.trim();
-    if(!phone){ alert('请输入手机号码 🌸'); return; }
-    if(country === '+886' && !line){ alert('台湾学员请填写 Line ID 💚'); document.getElementById('wa-popup-line').focus(); return; }
+
+    const phoneRules = {
+      '+60': {min:9, max:11, hint:'请填 9-11 位手机号'},
+      '+886':{min:9, max:10, hint:'请填 9-10 位手机号'},
+      '+65': {min:8, max:8,  hint:'请填 8 位手机号'},
+      '+86': {min:11,max:11, hint:'请填 11 位手机号'},
+      '+852':{min:8, max:8,  hint:'请填 8 位手机号'},
+      '+62': {min:9, max:12, hint:'请填 9-12 位手机号'},
+      '+66': {min:9, max:9,  hint:'请填 9 位手机号'},
+      '+63': {min:10,max:10, hint:'请填 10 位手机号'},
+      '+84': {min:9, max:10, hint:'请填 9-10 位手机号'},
+    };
+    if(!phone){ showWAErr('⚠️ 请输入手机号码'); return; }
+    const rule = phoneRules[country];
+    if(rule && (phone.length < rule.min || phone.length > rule.max)){
+      showWAErr('⚠️ 号码格式不正确，'+rule.hint); return;
+    }
+    if(country === '+886' && !line){ showWAErr('⚠️ 台湾学员请填写 Line ID'); document.getElementById('wa-popup-line').focus(); return; }
     const fullPhone = country.replace('+','') + phone;
     const countryNames = {'+60':'马来西亚','+886':'台湾','+65':'新加坡','+86':'中国','+852':'香港','+62':'印尼','+66':'泰国','+63':'菲律宾','+84':'越南'};
     const countryName = countryNames[country]||country;
