@@ -1168,17 +1168,17 @@
   const waMsg = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
 
   document.getElementById('wa-float-btn').addEventListener('click', function(){
-    // 已填过表单的直接跳转不弹窗
     const saved = localStorage.getItem('_wa_num');
     const savedPhone = localStorage.getItem('_wa_phone');
+    // 只有同时有客服号码和客户号码才直接跳转
     if(saved && savedPhone){
       fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+savedPhone+'&repeat=1').catch(()=>{});
       window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
       return;
     }
-    // 弹出输入框
+    // 否则弹出输入框
     document.getElementById('wa-popup').classList.add('show');
-    document.getElementById('wa-popup-phone').focus();
+    setTimeout(()=>document.getElementById('wa-popup-phone').focus(), 300);
   });
 
   // 点背景关闭
