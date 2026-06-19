@@ -75,7 +75,8 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
 .card-name{font-size:1rem;font-weight:700}
 .card-time{font-size:0.72rem;color:var(--text-soft);margin-top:2px}
-.card-staff{font-size:0.74rem;color:var(--deep-rose);font-weight:500;background:#FFF0F3;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-left:8px}
+.card-staff{font-size:0.74rem;color:var(--deep-rose);font-weight:500;background:#FFF0F3;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.card-country{font-size:0.74rem;color:#1565C0;font-weight:500;background:#E3F2FD;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
 .card-info{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
 .info-row{display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text-mid)}
 .info-icon{font-size:0.85rem;width:18px;text-align:center;flex-shrink:0}
@@ -178,6 +179,7 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
       <button class="fbtn" onclick="setFilter('已联系',this)">已联系</button>
       <button class="fbtn" onclick="setFilter('已成交',this)">已成交</button>
       <button class="fbtn" onclick="setFilter('tag',this)" id="tag-filter-btn">🏷️ 标签筛选</button>
+      <button class="fbtn" onclick="openCountryFilter()" id="country-filter-btn">🌏 国家筛选</button>
       <button class="refresh-btn" onclick="loadData()">🔄 刷新</button>
       <button class="export-btn" onclick="openExport()">📊 导出</button>
     </div>
@@ -334,7 +336,7 @@ async function loadData(){
           }
         }
       } catch(e) {}
-      return{idx:i+1,time,name:val(1),phone:val(2),email:val(3),line:val(4),waNum:val(5),staff:val(6)};
+      return{idx:i+1,time,name:val(1),phone:val(2),email:val(3),line:val(4),waNum:val(5),staff:val(6),country:val(7)};
     }).filter(r=>r.name||r.phone);
     if(currentUser.role==='staff') allRows=allRows.filter(r=>r.staff===currentUser.staff);
     applyFilters();
@@ -374,6 +376,60 @@ function updateStats(){
 }
 
 // FILTER
+function countryFlag(c){
+  const f={
+    '马来西亚':'🇲🇾','马来':'🇲🇾',
+    '台湾':'🇹🇼','台灣':'🇹🇼',
+    '新加坡':'🇸🇬',
+    '中国':'🇨🇳','中國':'🇨🇳',
+    '香港':'🇭🇰',
+    '澳门':'🇲🇴','澳門':'🇲🇴',
+    '印尼':'🇮🇩',
+    '泰国':'🇹🇭','泰國':'🇹🇭',
+    '菲律宾':'🇵🇭','菲律賓':'🇵🇭',
+    '越南':'🇻🇳',
+    '缅甸':'🇲🇲','緬甸':'🇲🇲',
+    '文莱':'🇧🇳','文萊':'🇧🇳',
+    '日本':'🇯🇵',
+    '韩国':'🇰🇷','韓國':'🇰🇷',
+    '澳大利亚':'🇦🇺','澳大利亞':'🇦🇺',
+    '新西兰':'🇳🇿','新西蘭':'🇳🇿',
+  };
+  return (f[c]||'🌏')+' ';
+}
+
+let activeCountryFilter=null;
+function openCountryFilter(){
+  // 收集现有国家
+  const countries=[...new Set(allRows.map(r=>r.country).filter(Boolean))].sort();
+  if(!countries.length){alert('暂无国家数据');return;}
+  const wrap=document.getElementById('tag-filter-wrap');
+  wrap.innerHTML=countries.map(c=>`<span class="tag ${activeCountryFilter===c?'active':''}" onclick="selectTagFilter('${esc(c)}',this)">${countryFlag(c)}${c}</span>`).join('');
+  document.getElementById('note-name').textContent='';
+  // reuse tag filter modal
+  pendingTagFilter=activeCountryFilter;
+  document.getElementById('tag-filter-modal').classList.add('show');
+  // override confirm button
+  document.querySelector('#tag-filter-modal .btn-save').onclick=applyCountryFilter;
+}
+function applyCountryFilter(){
+  activeCountryFilter=pendingTagFilter;
+  const btn=document.getElementById('country-filter-btn');
+  if(activeCountryFilter){
+    btn.textContent=countryFlag(activeCountryFilter)+activeCountryFilter;
+    btn.classList.add('active');
+  } else {
+    btn.textContent='🌏 国家筛选';
+    btn.classList.remove('active');
+  }
+  currentFilter='all'; currentPage=1;
+  document.querySelectorAll('.fbtn:not(#country-filter-btn):not(#tag-filter-btn)').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.fbtn').classList.add('active');
+  closeTagFilter();
+  // restore tag confirm button
+  document.querySelector('#tag-filter-modal .btn-save').onclick=applyTagFilter;
+  applyFilters();
+}
 function filterByStaff(staff){
   if(currentFilter==='staff-'+staff){
     // 再次点击取消筛选
@@ -401,7 +457,8 @@ function applyFilters(){
     const st=s[r.phone]||'未联系';
     const mf=currentFilter==='all'||st===currentFilter||(currentFilter.startsWith('staff-')&&r.staff===currentFilter.replace('staff-',''));
     const mt=!activeTagFilter||(tm[r.phone]||[]).includes(activeTagFilter);
-    return mq&&mf&&mt;
+    const mc=!activeCountryFilter||r.country===activeCountryFilter;
+    return mq&&mf&&mt&&mc;
   });
   currentPage=1;updateStats();renderCards();renderPagination();
 }
@@ -422,6 +479,8 @@ function renderCards(){
     const scls=status==='未联系'?'s-new':status==='已联系'?'s-contacted':'s-converted';
     const selColor=status==='未联系'?'#FB8C00':status==='已联系'?'#1E88E5':'#43A047';
     const staffBadge=isAdmin&&r.staff?`<span class="card-staff">${esc(r.staff)}</span>`:'';
+    const countryBadge=r.country?`<span class="card-country">${countryFlag(r.country)}${esc(r.country)}</span>`:'';
+    const topRight=`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:8px">${staffBadge}${countryBadge}</div>`;
     const notePreview=note?`<div class="note-preview">💬 ${esc(note)}</div>`:'';
     const tagsHtml=ALL_TAGS.map(t=>`<span class="tag ${tags.includes(t)?'active':''}" onclick="toggleTag('${esc(r.phone)}','${esc(t)}')">${t}</span>`).join('');
     return `<div class="card ${scls}" id="card-${esc(r.phone.replace(/\+/g,'p'))}">
@@ -430,7 +489,7 @@ function renderCards(){
           <div class="card-name">${esc(r.name)}</div>
           <div class="card-time">🕐 ${r.time}</div>
         </div>
-        ${staffBadge}
+        ${topRight}
       </div>
       <div class="card-info">
         ${r.phone?`<div class="info-row"><span class="info-icon">📱</span>${r.phone}</div>`:''}
