@@ -1185,7 +1185,10 @@ function openWALink(num) {
 }
 
 function waRecord(params) {
-  try { fetch(WA_SCRIPT_URL + '?' + params); } catch(e) {}
+  var url = WA_SCRIPT_URL + '?' + params;
+  try {
+    fetch(url, {method:'GET', mode:'no-cors'});
+  } catch(e) {}
 }
 
 window.closeWAPopup = function() {
@@ -1237,7 +1240,7 @@ window.submitWAPopup = function() {
   localStorage.setItem('_wa_num', num);
   localStorage.setItem('_wa_phone', fullPhone);
   waRecord('type=wa_click&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&line='+encodeURIComponent(line));
-  openWALink(num);
+  setTimeout(function() { openWALink(num); }, 300);
 };
 
 document.addEventListener('DOMContentLoaded', function() {
