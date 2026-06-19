@@ -950,7 +950,7 @@
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _countryName2 = (phoneRules[country]||{}).name||country;
     const _params2 = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||'', country:_countryName2});
-    fetch('https://script.google.com/macros/s/AKfycbxU-5Tzto4Q1zW6pJLlMdkIL3wMonZXiu-A1fJ8KXaLJjFtUR-ZF-ghakl6Pl0qd54/exec?'+_params2.toString())
+    fetch('https://script.google.com/macros/s/AKfycbwk4STY5JMwJBIxLEDVOWM_ciCrAMnf45ThZfdxFSsbAgEWTj432n87bE2spptd8Pc/exec?'+_params2.toString())
       .catch(()=>{});
 
     // ── Meta Pixel 转换追踪 ──
@@ -1037,7 +1037,7 @@
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _countryName = (phoneRules[country]||{}).name||country;
     const _params = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||'', country:_countryName});
-    fetch('https://script.google.com/macros/s/AKfycbxU-5Tzto4Q1zW6pJLlMdkIL3wMonZXiu-A1fJ8KXaLJjFtUR-ZF-ghakl6Pl0qd54/exec?'+_params.toString())
+    fetch('https://script.google.com/macros/s/AKfycbwk4STY5JMwJBIxLEDVOWM_ciCrAMnf45ThZfdxFSsbAgEWTj432n87bE2spptd8Pc/exec?'+_params.toString())
       .catch(()=>{});
 
     // ── Meta Pixel 转换追踪（先触发，再跳转） ──
@@ -1137,7 +1137,7 @@
       <div style="font-size:0.82rem;color:#888;margin-top:4px">填写号码，直接跳转 WhatsApp</div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
-      <select id="wa-popup-country" style="padding:12px 8px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.85rem;font-family:inherit;outline:none;background:#fff;flex-shrink:0">
+      <select id="wa-popup-country" onchange="toggleWALineField(this.value)" style="padding:12px 8px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.85rem;font-family:inherit;outline:none;background:#fff;flex-shrink:0">
         <option value="+60">🇲🇾 +60</option>
         <option value="+886">🇨🇳 +886</option>
         <option value="+65">🇸🇬 +65</option>
@@ -1149,6 +1149,9 @@
         <option value="+84">🇻🇳 +84</option>
       </select>
       <input id="wa-popup-phone" type="tel" placeholder="输入手机号码" style="flex:1;padding:12px 14px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.95rem;font-family:inherit;outline:none"/>
+    </div>
+    <div id="wa-line-wrap" style="display:none;margin-bottom:14px">
+      <input id="wa-popup-line" type="text" placeholder="请填写 Line ID（台湾必填）💚" style="width:100%;padding:12px 14px;border:1.5px solid #00B900;border-radius:12px;font-size:0.95rem;font-family:inherit;outline:none"/>
     </div>
     <button onclick="submitWAPopup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:14px;font-size:1rem;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(37,211,102,0.35)">
       📲 立即联系 WhatsApp
@@ -1164,7 +1167,7 @@
 </style>
 <script>
 (function(){
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxU-5Tzto4Q1zW6pJLlMdkIL3wMonZXiu-A1fJ8KXaLJjFtUR-ZF-ghakl6Pl0qd54/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk4STY5JMwJBIxLEDVOWM_ciCrAMnf45ThZfdxFSsbAgEWTj432n87bE2spptd8Pc/exec';
   const waMsg = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
 
   document.getElementById('wa-float-btn').addEventListener('click', function(){
@@ -1190,10 +1193,18 @@
     document.getElementById('wa-popup').classList.remove('show');
   };
 
+  window.toggleWALineField = function(country){
+    const wrap = document.getElementById('wa-line-wrap');
+    wrap.style.display = country === '+886' ? 'block' : 'none';
+    if(country !== '+886') document.getElementById('wa-popup-line').value = '';
+  };
+
   window.submitWAPopup = function(){
     const country = document.getElementById('wa-popup-country').value;
     const phone = document.getElementById('wa-popup-phone').value.trim().replace(/\D/g,'');
+    const line = document.getElementById('wa-popup-line').value.trim();
     if(!phone){ alert('请输入手机号码 🌸'); return; }
+    if(country === '+886' && !line){ alert('台湾学员请填写 Line ID 💚'); document.getElementById('wa-popup-line').focus(); return; }
     const fullPhone = country.replace('+','') + phone;
     const countryNames = {'+60':'马来西亚','+886':'台湾','+65':'新加坡','+86':'中国','+852':'香港','+62':'印尼','+66':'泰国','+63':'菲律宾','+84':'越南'};
     const countryName = countryNames[country]||country;
@@ -1202,15 +1213,13 @@
 
     const saved = localStorage.getItem('_wa_num');
     if(saved){
-      // 已有分配，记录号码并跳转
       localStorage.setItem('_wa_phone', fullPhone);
-      fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&repeat=1').catch(()=>{});
+      fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&line='+encodeURIComponent(line)+'&repeat=1').catch(()=>{});
       window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
       return;
     }
 
-    // 新访客，分配并记录
-    fetch(SCRIPT_URL+'?type=wa_click&phone='+fullPhone+'&country='+encodeURIComponent(countryName))
+    fetch(SCRIPT_URL+'?type=wa_click&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&line='+encodeURIComponent(line))
       .then(r=>r.json())
       .then(data=>{
         if(data.waNum){
