@@ -950,7 +950,7 @@
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _countryName2 = (phoneRules[country]||{}).name||country;
     const _params2 = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||'', country:_countryName2});
-    fetch('https://script.google.com/macros/s/AKfycbzMD8wiMtNaNlDzbmiAPoJXHEYGQySUL4pkRJQZawfCepPaPs_ZAngJBlyKPC6U4Ps/exec?'+_params2.toString())
+    fetch('https://script.google.com/macros/s/AKfycbxU-5Tzto4Q1zW6pJLlMdkIL3wMonZXiu-A1fJ8KXaLJjFtUR-ZF-ghakl6Pl0qd54/exec?'+_params2.toString())
       .catch(()=>{});
 
     // ── Meta Pixel 转换追踪 ──
@@ -1037,7 +1037,7 @@
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _countryName = (phoneRules[country]||{}).name||country;
     const _params = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||'', country:_countryName});
-    fetch('https://script.google.com/macros/s/AKfycbzMD8wiMtNaNlDzbmiAPoJXHEYGQySUL4pkRJQZawfCepPaPs_ZAngJBlyKPC6U4Ps/exec?'+_params.toString())
+    fetch('https://script.google.com/macros/s/AKfycbxU-5Tzto4Q1zW6pJLlMdkIL3wMonZXiu-A1fJ8KXaLJjFtUR-ZF-ghakl6Pl0qd54/exec?'+_params.toString())
       .catch(()=>{});
 
     // ── Meta Pixel 转换追踪（先触发，再跳转） ──
@@ -1113,50 +1113,116 @@
 </div>
 
 <!-- WA 悬浮按钮 -->
-<a id="wa-float-btn" href="#" target="_blank" style="
+<button id="wa-float-btn" style="
   position:fixed;bottom:90px;right:20px;z-index:9999;
   width:58px;height:58px;border-radius:50%;
   background:linear-gradient(135deg,#25D366,#128C7E);
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 20px rgba(37,211,102,0.5);
-  text-decoration:none;transition:transform 0.2s,box-shadow 0.2s;
+  border:none;cursor:pointer;
+  transition:transform 0.2s,box-shadow 0.2s;
   animation:wa-pulse 2s infinite;">
   <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#fff">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
   </svg>
-</a>
+</button>
+
+<!-- WA 弹窗 -->
+<div id="wa-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:28px 20px 36px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,0.15)">
+    <div style="width:40px;height:4px;background:#eee;border-radius:4px;margin:0 auto 20px"></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:2rem;margin-bottom:6px">💬</div>
+      <div style="font-size:1.05rem;font-weight:700;color:#1a1a1a">一键联系客服</div>
+      <div style="font-size:0.82rem;color:#888;margin-top:4px">填写号码，直接跳转 WhatsApp</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <select id="wa-popup-country" style="padding:12px 8px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.85rem;font-family:inherit;outline:none;background:#fff;flex-shrink:0">
+        <option value="+60">🇲🇾 +60</option>
+        <option value="+886">🇨🇳 +886</option>
+        <option value="+65">🇸🇬 +65</option>
+        <option value="+86">🇨🇳 +86</option>
+        <option value="+852">🇭🇰 +852</option>
+        <option value="+62">🇮🇩 +62</option>
+        <option value="+66">🇹🇭 +66</option>
+        <option value="+63">🇵🇭 +63</option>
+        <option value="+84">🇻🇳 +84</option>
+      </select>
+      <input id="wa-popup-phone" type="tel" placeholder="输入手机号码" style="flex:1;padding:12px 14px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.95rem;font-family:inherit;outline:none"/>
+    </div>
+    <button onclick="submitWAPopup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:14px;font-size:1rem;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(37,211,102,0.35)">
+      📲 立即联系 WhatsApp
+    </button>
+    <button onclick="closeWAPopup()" style="width:100%;padding:12px;background:none;border:none;color:#aaa;font-size:0.88rem;font-family:inherit;cursor:pointer;margin-top:8px">取消</button>
+  </div>
+</div>
+
 <style>
 @keyframes wa-pulse{0%,100%{box-shadow:0 4px 20px rgba(37,211,102,0.5)}50%{box-shadow:0 4px 28px rgba(37,211,102,0.8),0 0 0 8px rgba(37,211,102,0.15)}}
 #wa-float-btn:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(37,211,102,0.7)}
+#wa-popup.show{display:flex}
 </style>
 <script>
 (function(){
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMD8wiMtNaNlDzbmiAPoJXHEYGQySUL4pkRJQZawfCepPaPs_ZAngJBlyKPC6U4Ps/exec';
-  const msg = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
-  const btn = document.getElementById('wa-float-btn');
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxU-5Tzto4Q1zW6pJLlMdkIL3wMonZXiu-A1fJ8KXaLJjFtUR-ZF-ghakl6Pl0qd54/exec';
+  const waMsg = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
 
-  btn.addEventListener('click', function(e){
-    e.preventDefault();
-    // 已有分配记录直接跳转
+  document.getElementById('wa-float-btn').addEventListener('click', function(){
+    // 已填过表单的直接跳转不弹窗
     const saved = localStorage.getItem('_wa_num');
-    if(saved){
-      window.open('https://wa.me/'+saved+'?text='+msg, '_blank');
+    const savedPhone = localStorage.getItem('_wa_phone');
+    if(saved && savedPhone){
+      fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+savedPhone+'&repeat=1').catch(()=>{});
+      window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
       return;
     }
-    // 调用Apps Script分配并记录
-    fetch(SCRIPT_URL + '?type=wa_click')
+    // 弹出输入框
+    document.getElementById('wa-popup').classList.add('show');
+    document.getElementById('wa-popup-phone').focus();
+  });
+
+  // 点背景关闭
+  document.getElementById('wa-popup').addEventListener('click', function(e){
+    if(e.target===this) closeWAPopup();
+  });
+
+  window.closeWAPopup = function(){
+    document.getElementById('wa-popup').classList.remove('show');
+  };
+
+  window.submitWAPopup = function(){
+    const country = document.getElementById('wa-popup-country').value;
+    const phone = document.getElementById('wa-popup-phone').value.trim().replace(/\D/g,'');
+    if(!phone){ alert('请输入手机号码 🌸'); return; }
+    const fullPhone = country.replace('+','') + phone;
+    const countryNames = {'+60':'马来西亚','+886':'台湾','+65':'新加坡','+86':'中国','+852':'香港','+62':'印尼','+66':'泰国','+63':'菲律宾','+84':'越南'};
+    const countryName = countryNames[country]||country;
+
+    closeWAPopup();
+
+    const saved = localStorage.getItem('_wa_num');
+    if(saved){
+      // 已有分配，记录号码并跳转
+      localStorage.setItem('_wa_phone', fullPhone);
+      fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&repeat=1').catch(()=>{});
+      window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
+      return;
+    }
+
+    // 新访客，分配并记录
+    fetch(SCRIPT_URL+'?type=wa_click&phone='+fullPhone+'&country='+encodeURIComponent(countryName))
       .then(r=>r.json())
       .then(data=>{
         if(data.waNum){
           localStorage.setItem('_wa_num', data.waNum);
-          window.open('https://wa.me/'+data.waNum+'?text='+msg, '_blank');
+          localStorage.setItem('_wa_phone', fullPhone);
+          window.open('https://wa.me/'+data.waNum+'?text='+waMsg,'_blank');
         }
       })
       .catch(()=>{
-        // 失败备用：直接跳第一个号码
-        window.open('https://wa.me/60145461319?text='+msg, '_blank');
+        window.open('https://wa.me/60145461319?text='+waMsg,'_blank');
       });
-  });
+  };
 })();
 </script>
 </body>
