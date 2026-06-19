@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>播种幸福4天营 · 汇成百年 · 免费线上直播</title>
 
   <!-- OG / WhatsApp / 社媒分享预览 -->
@@ -1148,11 +1148,11 @@
         <option value="+63">🇵🇭 +63</option>
         <option value="+84">🇻🇳 +84</option>
       </select>
-      <input id="wa-popup-phone" type="tel" placeholder="输入手机号码" style="flex:1;padding:12px 14px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:0.95rem;font-family:inherit;outline:none"/>
+      <input id="wa-popup-phone" type="tel" placeholder="输入手机号码" style="flex:1;padding:12px 14px;border:1.5px solid #EDD5DC;border-radius:12px;font-size:16px;font-family:inherit;outline:none"/>
     </div>
     <div id="wa-err-msg" style="display:none;color:#C62828;font-size:0.82rem;margin-bottom:8px;padding:8px 12px;background:#FFF3F3;border-radius:8px"></div>
     <div id="wa-line-wrap" style="display:none;margin-bottom:8px">
-      <input id="wa-popup-line" type="text" placeholder="请填写 Line ID（台湾必填）💚" style="width:100%;padding:12px 14px;border:1.5px solid #00B900;border-radius:12px;font-size:0.95rem;font-family:inherit;outline:none"/>
+      <input id="wa-popup-line" type="text" placeholder="请填写 Line ID（台湾必填）💚" style="width:100%;padding:12px 14px;border:1.5px solid #00B900;border-radius:12px;font-size:16px;font-family:inherit;outline:none"/>
     </div>
     <button onclick="submitWAPopup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none;border-radius:14px;font-size:1rem;font-family:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(37,211,102,0.35);margin-bottom:8px">
       📲 立即联系 WhatsApp
@@ -1167,104 +1167,104 @@
 #wa-popup.show{display:flex}
 </style>
 <script>
-(function(){
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk4STY5JMwJBIxLEDVOWM_ciCrAMnf45ThZfdxFSsbAgEWTj432n87bE2spptd8Pc/exec';
-  const waMsg = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
+var WA_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk4STY5JMwJBIxLEDVOWM_ciCrAMnf45ThZfdxFSsbAgEWTj432n87bE2spptd8Pc/exec';
+var WA_MSG = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
+var WA_NUMS = ['60145461319','60176988377','601169479857','60178624689'];
 
-  function initWABtn(){
-    const btn = document.getElementById('wa-float-btn');
-    const popup = document.getElementById('wa-popup');
-    if(!btn || !popup){ setTimeout(initWABtn, 200); return; }
+function waHashIdx(str) {
+  var h = 0;
+  for (var i = 0; i < str.length; i++) {
+    h = ((h << 5) - h) + str.charCodeAt(i);
+    h = h & h;
+  }
+  return Math.abs(h) % WA_NUMS.length;
+}
 
-    btn.addEventListener('click', function(){
-      const saved = localStorage.getItem('_wa_num');
-      const savedPhone = localStorage.getItem('_wa_phone');
-      if(saved && savedPhone){
-        fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+savedPhone+'&repeat=1').catch(()=>{});
-        window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
+function openWALink(num) {
+  window.open('https://wa.me/' + num + '?text=' + WA_MSG, '_blank');
+}
+
+function waRecord(params) {
+  try { fetch(WA_SCRIPT_URL + '?' + params); } catch(e) {}
+}
+
+window.closeWAPopup = function() {
+  document.getElementById('wa-popup').style.display = 'none';
+};
+
+window.toggleWALineField = function(country) {
+  var wrap = document.getElementById('wa-line-wrap');
+  wrap.style.display = country === '+886' ? 'block' : 'none';
+  if (country !== '+886') document.getElementById('wa-popup-line').value = '';
+};
+
+function showWAErr(msg) {
+  var el = document.getElementById('wa-err-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+window.submitWAPopup = function() {
+  var country = document.getElementById('wa-popup-country').value;
+  var phone = document.getElementById('wa-popup-phone').value.trim().replace(/\D/g, '');
+  var line = document.getElementById('wa-popup-line').value.trim();
+  var rules = {'+60':{min:9,max:11,h:'请填9-11位'},'+886':{min:9,max:10,h:'请填9-10位'},'+65':{min:8,max:8,h:'请填8位'},'+86':{min:11,max:11,h:'请填11位'},'+852':{min:8,max:8,h:'请填8位'},'+62':{min:9,max:12,h:'请填9-12位'},'+66':{min:9,max:9,h:'请填9位'},'+63':{min:10,max:10,h:'请填10位'},'+84':{min:9,max:10,h:'请填9-10位'}};
+  var cnames = {'+60':'马来西亚','+886':'台湾','+65':'新加坡','+86':'中国','+852':'香港','+62':'印尼','+66':'泰国','+63':'菲律宾','+84':'越南'};
+
+  if (!phone) { showWAErr('请输入手机号码'); return; }
+  var rule = rules[country];
+  if (rule && (phone.length < rule.min || phone.length > rule.max)) {
+    showWAErr('号码格式不正确，' + rule.h); return;
+  }
+  if (country === '+886' && !line) { showWAErr('台湾学员请填写 Line ID'); document.getElementById('wa-popup-line').focus(); return; }
+
+  var fullPhone = country.replace('+', '') + phone;
+  var countryName = cnames[country] || country;
+
+  closeWAPopup();
+
+  var saved = localStorage.getItem('_wa_num');
+  if (saved) {
+    localStorage.setItem('_wa_phone', fullPhone);
+    waRecord('type=wa_click&waNum='+saved+'&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&line='+encodeURIComponent(line)+'&repeat=1');
+    openWALink(saved);
+    return;
+  }
+
+  var idx = waHashIdx(fullPhone);
+  var num = WA_NUMS[idx];
+  localStorage.setItem('_wa_num', num);
+  localStorage.setItem('_wa_phone', fullPhone);
+  waRecord('type=wa_click&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&line='+encodeURIComponent(line));
+  openWALink(num);
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('wa-float-btn');
+  var popup = document.getElementById('wa-popup');
+  if (btn) {
+    btn.addEventListener('click', function() {
+      var saved = localStorage.getItem('_wa_num');
+      var savedPhone = localStorage.getItem('_wa_phone');
+      if (saved && savedPhone) {
+        waRecord('type=wa_click&waNum='+saved+'&phone='+savedPhone+'&repeat=1');
+        openWALink(saved);
         return;
       }
-      popup.style.display='flex';
-      setTimeout(()=>{ const el=document.getElementById('wa-popup-phone'); if(el) el.focus(); }, 300);
+      popup.style.display = 'flex';
+      setTimeout(function() {
+        var el = document.getElementById('wa-popup-phone');
+        if (el) el.focus();
+      }, 300);
     });
-
-    popup.addEventListener('click', function(e){
-      if(e.target===this) closeWAPopup();
+  }
+  if (popup) {
+    popup.addEventListener('click', function(e) {
+      if (e.target === popup) closeWAPopup();
     });
   }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', initWABtn);
-  } else {
-    initWABtn();
-  }
-
-  window.closeWAPopup = function(){
-    document.getElementById('wa-popup').style.display='none';
-  };
-
-  function showWAErr(msg){
-    const el=document.getElementById('wa-err-msg');
-    el.textContent=msg; el.style.display='block';
-    setTimeout(()=>el.style.display='none', 3000);
-  }
-
-  window.toggleWALineField = function(country){
-    const wrap = document.getElementById('wa-line-wrap');
-    wrap.style.display = country === '+886' ? 'block' : 'none';
-    if(country !== '+886') document.getElementById('wa-popup-line').value = '';
-  };
-
-  window.submitWAPopup = function(){
-    const country = document.getElementById('wa-popup-country').value;
-    const phone = document.getElementById('wa-popup-phone').value.trim().replace(/\D/g,'');
-    const line = document.getElementById('wa-popup-line').value.trim();
-
-    const phoneRules = {
-      '+60': {min:9, max:11, hint:'请填 9-11 位手机号'},
-      '+886':{min:9, max:10, hint:'请填 9-10 位手机号'},
-      '+65': {min:8, max:8,  hint:'请填 8 位手机号'},
-      '+86': {min:11,max:11, hint:'请填 11 位手机号'},
-      '+852':{min:8, max:8,  hint:'请填 8 位手机号'},
-      '+62': {min:9, max:12, hint:'请填 9-12 位手机号'},
-      '+66': {min:9, max:9,  hint:'请填 9 位手机号'},
-      '+63': {min:10,max:10, hint:'请填 10 位手机号'},
-      '+84': {min:9, max:10, hint:'请填 9-10 位手机号'},
-    };
-    if(!phone){ showWAErr('⚠️ 请输入手机号码'); return; }
-    const rule = phoneRules[country];
-    if(rule && (phone.length < rule.min || phone.length > rule.max)){
-      showWAErr('⚠️ 号码格式不正确，'+rule.hint); return;
-    }
-    if(country === '+886' && !line){ showWAErr('⚠️ 台湾学员请填写 Line ID'); document.getElementById('wa-popup-line').focus(); return; }
-    const fullPhone = country.replace('+','') + phone;
-    const countryNames = {'+60':'马来西亚','+886':'台湾','+65':'新加坡','+86':'中国','+852':'香港','+62':'印尼','+66':'泰国','+63':'菲律宾','+84':'越南'};
-    const countryName = countryNames[country]||country;
-
-    closeWAPopup();
-
-    const saved = localStorage.getItem('_wa_num');
-    if(saved){
-      localStorage.setItem('_wa_phone', fullPhone);
-      fetch(SCRIPT_URL+'?type=wa_click&waNum='+saved+'&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&line='+encodeURIComponent(line)+'&repeat=1').catch(()=>{});
-      window.open('https://wa.me/'+saved+'?text='+waMsg,'_blank');
-      return;
-    }
-
-    fetch(SCRIPT_URL+'?type=wa_click&phone='+fullPhone+'&country='+encodeURIComponent(countryName)+'&line='+encodeURIComponent(line))
-      .then(r=>r.json())
-      .then(data=>{
-        if(data.waNum){
-          localStorage.setItem('_wa_num', data.waNum);
-          localStorage.setItem('_wa_phone', fullPhone);
-          window.open('https://wa.me/'+data.waNum+'?text='+waMsg,'_blank');
-        }
-      })
-      .catch(()=>{
-        window.open('https://wa.me/60145461319?text='+waMsg,'_blank');
-      });
-  };
-})();
+});
 </script>
 </body>
 </html>
