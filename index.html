@@ -950,7 +950,7 @@
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _countryName2 = (phoneRules[country]||{}).name||country;
     const _params2 = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||'', country:_countryName2});
-    fetch('https://script.google.com/macros/s/AKfycbzQgOqpAoyfrEQZS4oQjpr71GsJoGiApXjCsWuNh6t017Vq-XiFytVolLE5_gBUKTA/exec?'+_params2.toString())
+    fetch('https://script.google.com/macros/s/AKfycbzMRTBm_B6-EbwOhgtBi_FCqsL-iNkUadU5rGbNXsl7h8tOB4n1s9sWk8fOiKfNdg/exec?'+_params2.toString())
       .catch(()=>{});
 
     // ── Meta Pixel 转换追踪 ──
@@ -1037,7 +1037,7 @@
     // ── 发送到 Google Sheets（GET 方式，绕开 CORS）──
     const _countryName = (phoneRules[country]||{}).name||country;
     const _params = new URLSearchParams({name, phone:fullPhone, email, line:line||'', waNum:num, staff:_waNames[_idx]||'', country:_countryName});
-    fetch('https://script.google.com/macros/s/AKfycbzQgOqpAoyfrEQZS4oQjpr71GsJoGiApXjCsWuNh6t017Vq-XiFytVolLE5_gBUKTA/exec?'+_params.toString())
+    fetch('https://script.google.com/macros/s/AKfycbzMRTBm_B6-EbwOhgtBi_FCqsL-iNkUadU5rGbNXsl7h8tOB4n1s9sWk8fOiKfNdg/exec?'+_params.toString())
       .catch(()=>{});
 
     // ── Meta Pixel 转换追踪（先触发，再跳转） ──
@@ -1167,7 +1167,7 @@
 #wa-popup.show{display:flex}
 </style>
 <script>
-var WA_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQgOqpAoyfrEQZS4oQjpr71GsJoGiApXjCsWuNh6t017Vq-XiFytVolLE5_gBUKTA/exec';
+var WA_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMRTBm_B6-EbwOhgtBi_FCqsL-iNkUadU5rGbNXsl7h8tOB4n1s9sWk8fOiKfNdg/exec';
 var WA_MSG = encodeURIComponent('您好，我想了解《播种幸福4天营》的详情 🌸');
 var WA_NUMS = ['60145461319','60176988377','601169479857','60178624689'];
 
