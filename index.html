@@ -1088,16 +1088,41 @@ function submitModal(){
   var msg=encodeURIComponent('老师您好，我想预约《'+COURSE_NAME+'》直播课学习，我是：'+n);
   var waBtn=document.getElementById('wa-btn');
   var waImg=document.getElementById('wa-img-link');
-  function _setWA(nm){var href='https://wa.me/'+nm+'?text='+msg;if(waBtn)waBtn.href=href;if(waImg)waImg.href=href;}
+  var _redirected=false,_replied=false;
+  function _setWA(nm){if(_redirected)return;var href='https://wa.me/'+nm+'?text='+msg;if(waBtn)waBtn.href=href;if(waImg)waImg.href=href;}
   _setWA(num);
+  function _go(){
+    if(_redirected)return;_redirected=true;
+    var _waUrl='https://wa.me/'+num+'?text='+msg;
+    if(waBtn)waBtn.href=_waUrl;if(waImg)waImg.href=_waUrl;
+    var _w=window.open(_waUrl,'_blank');if(!_w){window.location.href=_waUrl;}
+  }
   // 提交到 Apps Script：服务端做全局轮流分配 + 重复号码固定原客服，并写入名单
   var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME});
   fetch(GAS_URL+'?'+params.toString()).then(function(r){return r.json();}).then(function(res){
     if(res&&res.ok&&res.num){num=String(res.num);staffName=res.staff||staffName;_setWA(num);}
-  }).catch(function(){});
+    _replied=true;
+  }).catch(function(){_replied=true;});
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
-  var _cdCount=4;var _cdTimer=setInterval(function(){_cdCount--;var el=document.getElementById('wa-cd-num');if(el)el.textContent=_cdCount;if(_cdCount<=0){clearInterval(_cdTimer);var _waUrl='https://wa.me/'+num+'?text='+msg;var _w=window.open(_waUrl,'_blank');if(!_w){window.location.href=_waUrl;}}},1000);
+  // 倒计时结束后：必须等服务端分配结果回来才跳转（最多再等8秒），
+  // 跳转发生后锁定客服，迟到的回复不再改按钮——学员去哪、按钮指哪、表格记谁三者一致
+  var _cdCount=4;var _waited=0;
+  var _cdTimer=setInterval(function(){
+    var el=document.getElementById('wa-cd-num');
+    if(_cdCount>0){
+      _cdCount--;
+      if(el)el.textContent=_cdCount;
+      if(_cdCount<=0&&!_replied){
+        var cd=document.getElementById('wa-countdown');
+        if(cd)cd.innerHTML='正在为您分配专属老师…';
+      }
+      if(_cdCount<=0&&_replied){clearInterval(_cdTimer);_go();}
+    }else{
+      _waited++;
+      if(_replied||_waited>=8){clearInterval(_cdTimer);_go();}
+    }
+  },1000);
 }
 // Countdown — 目标：2026年7月7日 19:00 MYT (UTC+8) = UTC 11:00
 var TARGET_TIME = new Date(Date.UTC(2026, 6, 7, 11, 0, 0)); // 月份从0起算，6=7月
