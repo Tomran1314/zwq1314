@@ -1003,11 +1003,21 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
 
 <script>
 
-var GAS_URL='https://script.google.com/macros/s/AKfycbzSLIVvC3yk2l7pUqmcyZt11PJ7WMlRULRSzLkdbSE-SuqECQceUrLcM5pKOXwUc_M/exec';
-var _waNumbers=['601127002295','601170225883','601139410137','60145461319','60178624689','601169479857','60139349131'];
-var _waNames=['志颖老师','Sam老师','齐得老师','小何老师','大鹏老师','越聪老师','馨予老师'];
+// ★ 统一脚本网址：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
+var GAS_URL='https://script.google.com/macros/s/AKfycbxG6OpWTEjU_iFP6wddgG0pVA7uvzOKjrAykt_SUmskgqHOgbOSBrGVuwGO1fhnF10/exec';
 var COURSE_NAME='AI财道陪跑4天营';
-var _waIndex=0;
+// 客服名单（顺序与 Apps Script 花名册一致；前3位为台湾名单专属池）
+var _waAll=[
+  {name:'志颖老师',num:'601127002295'},
+  {name:'越聪老师',num:'601169479857'},
+  {name:'馨予老师',num:'60139349131'},
+  {name:'齐得老师',num:'601139410137'},
+  {name:'Sam老师',num:'601170225883'},
+  {name:'小何老师',num:'60145461319'},
+  {name:'大鹏老师',num:'60178624689'}
+];
+var _waTW=_waAll.slice(0,3);
+var _waIndex=0;var _waIndexTW=0;
 var phoneRules={
   '+60':{min:9,max:11,name:'马来西亚',hint:'9-11位'},
   '+65':{min:8,max:8,name:'新加坡',hint:'8位'},
@@ -1066,18 +1076,25 @@ function submitModal(){
   if(c==='+886'&&!l){alert('台湾学员请填写Line ID');return;}
   if(!isValidPhone(c,p)){document.getElementById('phone-error').style.display='block';document.getElementById('m-phone').focus();return;}
   document.getElementById('phone-error').style.display='none';
-  var fp=c+p,idx=_waIndex%_waNumbers.length;_waIndex++;
-  var num=_waNumbers[idx],cn=(phoneRules[c]||{}).name||c;
+  var fp=c+p,cn=(phoneRules[c]||{}).name||c;
+  // 客户端预选（仅作后端不可达时的兜底显示），最终以 Apps Script 服务端分配为准
+  var sel;
+  if(c==='+886'){ sel=_waTW[_waIndexTW%_waTW.length]; _waIndexTW++; }
+  else { sel=_waAll[_waIndex%_waAll.length]; _waIndex++; }
+  var num=sel.num,staffName=sel.name;
   document.getElementById('form-screen').style.display='none';
   document.getElementById('success-screen').style.display='block';
   document.body.style.overflow='';
   var msg=encodeURIComponent('老师您好，我想预约《'+COURSE_NAME+'》直播课学习，我是：'+n);
   var waBtn=document.getElementById('wa-btn');
-  if(waBtn){waBtn.href='https://wa.me/'+num+'?text='+msg;}
   var waImg=document.getElementById('wa-img-link');
-  if(waImg){waImg.href='https://wa.me/'+num+'?text='+msg;}
-  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',waNum:num,staff:_waNames[idx]||'',country:cn,course:COURSE_NAME});
-  fetch(GAS_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'}).catch(function(){});
+  function _setWA(nm){var href='https://wa.me/'+nm+'?text='+msg;if(waBtn)waBtn.href=href;if(waImg)waImg.href=href;}
+  _setWA(num);
+  // 提交到 Apps Script：服务端做全局轮流分配 + 重复号码固定原客服，并写入名单
+  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME});
+  fetch(GAS_URL+'?'+params.toString()).then(function(r){return r.json();}).then(function(res){
+    if(res&&res.ok&&res.num){num=String(res.num);staffName=res.staff||staffName;_setWA(num);}
+  }).catch(function(){});
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
   var _cdCount=4;var _cdTimer=setInterval(function(){_cdCount--;var el=document.getElementById('wa-cd-num');if(el)el.textContent=_cdCount;if(_cdCount<=0){clearInterval(_cdTimer);window.open('https://wa.me/'+num+'?text='+msg,'_blank');}},1000);
