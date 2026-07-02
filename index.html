@@ -466,6 +466,24 @@ footer{background:linear-gradient(160deg,#FFF5E8,#FFECD8,#FFF5E8);
 }
 50%{transform:scale(1.1)}}
 </style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','2284369285700586');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
 </head>
 <body>
 
@@ -1196,5 +1214,46 @@ setTimeout(function(){
 },10000);
 
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+
+  document.querySelectorAll('a[href*="wa.me"],a[href*="whatsapp"],a[href*="api.whatsapp"]').forEach(function(el){
+    el.addEventListener('click',function(){
+      if(window.fbq){fbq('track','Contact');}
+    });
+  });
+
+  document.querySelectorAll('button,.bar-btn,.cd-cta,.nav-btn').forEach(function(el){
+    el.addEventListener('click',function(){
+      if(window.fbq){fbq('trackCustom','ButtonClick',{text:(this.innerText||'').trim()});}
+    });
+  });
+
+  document.querySelectorAll('form').forEach(function(form){
+    form.addEventListener('submit',function(){
+      if(window.fbq){
+        fbq('track','Lead');
+        fbq('track','CompleteRegistration');
+      }
+    });
+  });
+
+  var success=document.getElementById('success-screen');
+  if(success){
+    var observer=new MutationObserver(function(){
+      if(getComputedStyle(success).display!=='none'){
+        if(window.fbq){
+          fbq('track','Lead');
+          fbq('track','CompleteRegistration');
+        }
+      }
+    });
+    observer.observe(success,{attributes:true,attributeFilter:['style','class']});
+  }
+
+});
+</script>
+
 </body>
 </html>
