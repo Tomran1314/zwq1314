@@ -1097,7 +1097,7 @@ function submitModal(){
   }).catch(function(){});
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
-  var _cdCount=4;var _cdTimer=setInterval(function(){_cdCount--;var el=document.getElementById('wa-cd-num');if(el)el.textContent=_cdCount;if(_cdCount<=0){clearInterval(_cdTimer);window.open('https://wa.me/'+num+'?text='+msg,'_blank');}},1000);
+  var _cdCount=4;var _cdTimer=setInterval(function(){_cdCount--;var el=document.getElementById('wa-cd-num');if(el)el.textContent=_cdCount;if(_cdCount<=0){clearInterval(_cdTimer);var _waUrl='https://wa.me/'+num+'?text='+msg;var _w=window.open(_waUrl,'_blank');if(!_w){window.location.href=_waUrl;}}},1000);
 }
 // Countdown — 目标：2026年7月7日 19:00 MYT (UTC+8) = UTC 11:00
 var TARGET_TIME = new Date(Date.UTC(2026, 6, 7, 11, 0, 0)); // 月份从0起算，6=7月
