@@ -3,37 +3,37 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>播种幸福 · 客户管理</title>
+<title>汇成百年 · 客户管理</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --rose:#E8899A;--deep-rose:#C45C72;--gold:#C9974A;--gold-light:#F0D9B5;
-  --bg:#F7F0F2;--card:#fff;--text-dark:#2D1A1F;--text-mid:#6B3F4A;
-  --text-soft:#A07080;--border:#EDD5DC;
+  --rose:#F3A73B;--deep-rose:#D97D0D;--gold:#C9974A;--gold-light:#F5E3C0;
+  --bg:#FBF6EE;--card:#fff;--text-dark:#2E2013;--text-mid:#7A5A32;
+  --text-soft:#B08A5C;--border:#F0DFC2;
   --green:#43A047;--blue:#1E88E5;--orange:#FB8C00;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text-dark);min-height:100vh;-webkit-tap-highlight-color:transparent}
 
 /* LOGIN */
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#ffe4ec,#fff0f5,#fff8ee);padding:20px}
-.login-card{background:#fff;border-radius:28px;padding:40px 28px 32px;width:100%;max-width:360px;box-shadow:0 24px 60px rgba(196,92,114,0.18);text-align:center}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,#FFF3DD,#FFEAC7,#FFF9EE);padding:20px}
+.login-card{background:#fff;border-radius:28px;padding:40px 28px 32px;width:100%;max-width:360px;box-shadow:0 24px 60px rgba(217,125,13,0.18);text-align:center}
 .login-logo{font-size:2.8rem;margin-bottom:10px}
 .login-title{font-size:1.2rem;font-weight:700;margin-bottom:4px}
 .login-sub{font-size:0.82rem;color:var(--text-soft);margin-bottom:32px}
 .field{margin-bottom:16px;text-align:left}
 .field label{display:block;font-size:0.78rem;color:var(--text-mid);font-weight:600;margin-bottom:6px}
-.field input{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:1rem;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border 0.2s;background:#FFFAF7}
+.field input{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:1rem;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border 0.2s;background:#FFFCF5}
 .field input:focus{border-color:var(--rose);background:#fff}
-.login-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--deep-rose),var(--gold));color:#fff;border:none;border-radius:14px;font-size:1rem;font-family:'Noto Sans SC',sans-serif;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(196,92,114,0.35)}
+.login-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--deep-rose),var(--gold));color:#fff;border:none;border-radius:14px;font-size:1rem;font-family:'Noto Sans SC',sans-serif;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(217,125,13,0.35)}
 .login-err{color:#C62828;font-size:0.82rem;margin-top:12px;display:none}
 
 /* APP */
 #app-screen{display:none;min-height:100vh}
 
 /* HEADER */
-.hdr{background:linear-gradient(135deg,var(--deep-rose) 0%,#d4748a 60%,var(--gold) 100%);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(196,92,114,0.3)}
+.hdr{background:linear-gradient(135deg,#C86A00 0%,#F0A028 60%,var(--gold) 100%);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(200,106,0,0.3)}
 .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .hdr-title{color:#fff;font-size:1rem;font-weight:700}
 .hdr-actions{display:flex;gap:8px;align-items:center}
@@ -55,7 +55,7 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 /* TOOLBAR */
 .toolbar{background:var(--card);padding:12px 14px;border-bottom:1px solid var(--border);position:sticky;top:88px;z-index:90}
 .search-row{position:relative;margin-bottom:10px}
-.search-row input{width:100%;padding:11px 14px 11px 38px;border:1.5px solid var(--border);border-radius:12px;font-size:0.9rem;font-family:'Noto Sans SC',sans-serif;outline:none;background:#FFFAF7}
+.search-row input{width:100%;padding:11px 14px 11px 38px;border:1.5px solid var(--border);border-radius:12px;font-size:0.9rem;font-family:'Noto Sans SC',sans-serif;outline:none;background:#FFFCF5}
 .search-row input:focus{border-color:var(--rose);background:#fff}
 .search-row::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.85rem}
 .filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
@@ -67,7 +67,7 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 
 /* CARDS */
 .cards{padding:12px 12px 80px}
-.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:10px;box-shadow:0 2px 12px rgba(196,92,114,0.07);border:1px solid #FDF0F3;position:relative;overflow:hidden}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:10px;box-shadow:0 2px 12px rgba(217,125,13,0.07);border:1px solid #FBF0DC;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
 .card.s-new::before{background:var(--orange)}
 .card.s-contacted::before{background:var(--blue)}
@@ -75,8 +75,11 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
 .card-name{font-size:1rem;font-weight:700}
 .card-time{font-size:0.72rem;color:var(--text-soft);margin-top:2px}
-.card-staff{font-size:0.74rem;color:var(--deep-rose);font-weight:500;background:#FFF0F3;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.card-staff{font-size:0.74rem;color:var(--deep-rose);font-weight:500;background:#FFF3DD;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
 .card-country{font-size:0.74rem;color:#1565C0;font-weight:500;background:#E3F2FD;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.card-course{font-size:0.74rem;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.card-course.c-ai{color:#C04808;background:#FFF3E0}
+.card-course.c-seed{color:#AD1457;background:#FCE4EC}
 .card-info{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
 .info-row{display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text-mid)}
 .info-icon{font-size:0.85rem;width:18px;text-align:center;flex-shrink:0}
@@ -113,11 +116,11 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 /* MODALS */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(45,26,31,0.5);z-index:300;align-items:flex-end;justify-content:center}
 .modal-bg.show{display:flex}
-.modal-box{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:500px;box-shadow:0 -8px 40px rgba(196,92,114,0.2);max-height:85vh;overflow-y:auto}
+.modal-box{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:500px;box-shadow:0 -8px 40px rgba(217,125,13,0.2);max-height:85vh;overflow-y:auto}
 .modal-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px}
 .modal-title{font-size:1rem;font-weight:700;margin-bottom:4px}
 .modal-sub{font-size:0.82rem;color:var(--text-soft);margin-bottom:14px}
-.modal-ta{width:100%;min-height:90px;padding:12px 14px;border:1.5px solid var(--border);border-radius:14px;font-size:0.9rem;font-family:'Noto Sans SC',sans-serif;resize:none;outline:none;background:#FFFAF7}
+.modal-ta{width:100%;min-height:90px;padding:12px 14px;border:1.5px solid var(--border);border-radius:14px;font-size:0.9rem;font-family:'Noto Sans SC',sans-serif;resize:none;outline:none;background:#FFFCF5}
 .modal-ta:focus{border-color:var(--rose)}
 .modal-acts{display:flex;gap:10px;margin-top:14px}
 .btn-cancel{flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-size:0.9rem;font-family:'Noto Sans SC',sans-serif;cursor:pointer;color:var(--text-mid)}
@@ -143,7 +146,7 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">🌸</div>
-    <div class="login-title">播种幸福4天营</div>
+    <div class="login-title">AI财道 & 播种幸福 · 客户管理</div>
     <div class="login-sub">客户管理后台 · 汇成百年</div>
     <div class="field"><label>用户名</label><input type="text" id="lu" placeholder="输入用户名" autocomplete="username"/></div>
     <div class="field"><label>密码</label><input type="password" id="lp" placeholder="输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
@@ -175,6 +178,8 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
     <div class="search-row"><input type="text" id="search-inp" placeholder="搜索姓名、号码、邮箱、标签…" oninput="applyFilters()"/></div>
     <div class="filter-row">
       <button class="fbtn active" onclick="setFilter('all',this)">全部</button>
+      <button class="fbtn" onclick="setCourseFilter('AI财道',this)" id="course-ai-btn">🚀 AI财道</button>
+      <button class="fbtn" onclick="setCourseFilter('播种幸福',this)" id="course-seed-btn">🌸 播种幸福</button>
       <button class="fbtn" onclick="setFilter('未联系',this)">未联系</button>
       <button class="fbtn" onclick="setFilter('已联系',this)">已联系</button>
       <button class="fbtn" onclick="setFilter('已成交',this)">已成交</button>
@@ -258,19 +263,42 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 <script>
 const ACCOUNTS = {
   'tomran':    {pass:'131419', name:'Tom Ran（管理员）', staff:null,      role:'admin'},
-  'xiaohe':    {pass:'he1234', name:'小何助教',          staff:'小何助教', role:'staff'},
-  'huangjuan': {pass:'hj1234', name:'黄娟老师',          staff:'黄娟老师', role:'staff'},
+  'zhiying':   {pass:'zy1234', name:'志颖老师',          staff:'志颖老师', role:'staff'},
   'yuecong':   {pass:'yc1234', name:'越聪老师',          staff:'越聪老师', role:'staff'},
+  'xinyu':     {pass:'xy1234', name:'馨予老师',          staff:'馨予老师', role:'staff'},
+  'qide':      {pass:'qd1234', name:'齐得老师',          staff:'齐得老师', role:'staff'},
+  'sam':       {pass:'sam1234',name:'Sam老师',           staff:'Sam老师',  role:'staff'},
+  'xiaohe':    {pass:'he1234', name:'小何老师',          staff:'小何老师', role:'staff'},
   'dapeng':    {pass:'dp1234', name:'大鹏老师',          staff:'大鹏老师', role:'staff'},
+  'huangjuan': {pass:'hj1234', name:'黄娟老师',          staff:'黄娟老师', role:'staff'},
 };
 
+// 客服别名分组：同一位老师在不同课程表里的名称都算作同一人
+const STAFF_GROUPS = {
+  '志颖老师': ['志颖老师'],
+  '越聪老师': ['越聪老师'],
+  '馨予老师': ['馨予老师'],
+  '齐得老师': ['齐得老师'],
+  'Sam老师':  ['Sam老师'],
+  '小何老师': ['小何老师','小何助教'],
+  '大鹏老师': ['大鹏老师'],
+  '黄娟老师': ['黄娟老师'],
+};
+function staffMatch(rowStaff, groupName){
+  const aliases = STAFF_GROUPS[groupName] || [groupName];
+  return aliases.includes(rowStaff);
+}
+
+// ★ 统一脚本网址（播种幸福+AI财道共用一张表）：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxjh7U0A_MDGDZ1ProYw1JXqEZzbztXtSEWYpD8Gjyz2X_O5lgxJPqBus-8OWU3oc/exec';
+const COURSE_AI = 'AI财道';
+const COURSE_SEED = '播种幸福';
 const PAGE_SIZE = 15;
 
 const ALL_TAGS = ['🔥 高意向','💰 已付款','🤔 考虑中','❌ 不感兴趣','📞 需回电','🤝 汇播合伙人','🎓 训练营'];
 
 let currentUser=null, allRows=[], filteredRows=[];
-let currentPage=1, currentFilter='all', activeTagFilter=null;
+let currentPage=1, currentFilter='all', activeTagFilter=null, activeCourseFilter=null;
 let activePhone=null, activeWAPhone=null;
 
 function sk(k){return `hc_${currentUser.username}_${k}`;}
@@ -310,42 +338,69 @@ function doLogout(){
   }catch(e){}
 })();
 
-// LOAD DATA
+// LOAD DATA（单一数据源：播种幸福+AI财道 共用一张表，课程从 I 列「课程备注」读取）
+function parseTimeMs(rawTime, idx){
+  try{
+    const m = rawTime.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s*(上午|下午)?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if(m){
+      let h = parseInt(m[5]||'0');
+      if(m[4]==='下午' && h<12) h+=12;
+      if(m[4]==='上午' && h===12) h=0;
+      return new Date(+m[1], +m[2]-1, +m[3], h, +(m[6]||0), +(m[7]||0)).getTime();
+    }
+    const d = new Date(rawTime);
+    if(!isNaN(d)) return d.getTime();
+  }catch(e){}
+  return idx; // 解析失败时按表格行号兜底（行号越大越新）
+}
+function parseRows(data){
+  return data.slice(1).map((cols,i)=>{
+    const val=idx=>String(cols[idx]||'').trim();
+    const rawTime = val(0);
+    let time = rawTime;
+    try {
+      // 支持 "2026/6/18 下午 1:39:08" 格式
+      const m = rawTime.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})\s*(上午|下午)\s*(\d{1,2}):(\d{2})/);
+      if (m) {
+        let h = parseInt(m[5]);
+        if (m[4]==='下午' && h<12) h+=12;
+        if (m[4]==='上午' && h===12) h=0;
+        time = `${m[1]}/${m[2]}/${m[3]} ${String(h).padStart(2,'0')}:${m[6]}`;
+      } else {
+        const d = new Date(rawTime);
+        if (!isNaN(d)) {
+          time = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        }
+      }
+    } catch(e) {}
+    // I列「课程备注」：含 AI → AI财道，否则归为播种幸福
+    const rawCourse = val(8);
+    const course = rawCourse.indexOf('AI')>-1 ? COURSE_AI : COURSE_SEED;
+    return{idx:i+1,time,rawTime,ms:parseTimeMs(rawTime,i+1),name:val(1),phone:val(2),email:val(3),line:val(4),waNum:val(5),staff:val(6),country:val(7),course,sheetNote:val(9)};
+  }).filter(r=>r.name||r.phone);
+}
+
 async function loadData(){
   document.getElementById('cards-wrap').innerHTML=`<div class="empty"><div class="icon">⏳</div><p>正在加载数据…</p></div>`;
   document.getElementById('err-bar').style.display='none';
+  let rows=[];
   try{
-    const res=await fetch(SCRIPT_URL);
-    const data=await res.json();
-    allRows=data.slice(1).map((cols,i)=>{
-      const val=idx=>String(cols[idx]||'').trim();
-      const rawTime = val(0);
-      let time = rawTime;
-      try {
-        // 支持 "2026/6/18 下午 1:39:08" 格式
-        const m = rawTime.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})\s*(上午|下午)\s*(\d{1,2}):(\d{2})/);
-        if (m) {
-          let h = parseInt(m[5]);
-          if (m[4]==='下午' && h<12) h+=12;
-          if (m[4]==='上午' && h===12) h=0;
-          time = `${m[1]}/${m[2]}/${m[3]} ${String(h).padStart(2,'0')}:${m[6]}`;
-        } else {
-          const d = new Date(rawTime);
-          if (!isNaN(d)) {
-            time = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-          }
-        }
-      } catch(e) {}
-      return{idx:i+1,time,name:val(1),phone:val(2),email:val(3),line:val(4),waNum:val(5),staff:val(6),country:val(7)};
-    }).filter(r=>r.name||r.phone);
-    if(currentUser.role==='staff') allRows=allRows.filter(r=>r.staff===currentUser.staff);
-    applyFilters();
-  }catch(e){
+    const data=await fetch(SCRIPT_URL).then(r=>r.json());
+    if(Array.isArray(data)) rows=parseRows(data);
+  }catch(e){}
+
+  if(!rows.length){
     const eb=document.getElementById('err-bar');
     eb.style.display='block';
-    eb.textContent='⚠️ 无法加载数据，请确认 Google Sheets 已设置为"任何人可查看"，然后点击刷新。';
+    eb.textContent='⚠️ 无法加载数据，请确认 Apps Script 已部署为"任何人可访问"，然后点击刷新。';
     document.getElementById('cards-wrap').innerHTML=`<div class="empty"><div class="icon">😅</div><p>加载失败，请刷新重试</p></div>`;
+    return;
   }
+  // 新名单在最前：按提交时间从新到旧排列
+  rows.sort((a,b)=>(b.ms-a.ms)||(b.idx-a.idx));
+  allRows=rows;
+  if(currentUser.role==='staff') allRows=allRows.filter(r=>staffMatch(r.staff, currentUser.staff));
+  applyFilters();
 }
 
 // STATS
@@ -360,10 +415,10 @@ function updateStats(){
   // 管理员显示客服分类统计
   const staffStatsEl=document.getElementById('staff-stats');
   if(currentUser.role==='admin'){
-    const staffList=['小何助教','黄娟老师','越聪老师','大鹏老师'];
+    const staffList=['志颖老师','越聪老师','馨予老师','齐得老师','Sam老师','小何老师','大鹏老师','黄娟老师'];
     const counts={};
     staffList.forEach(st=>counts[st]=0);
-    allRows.forEach(r=>{ if(counts[r.staff]!==undefined) counts[r.staff]++; });
+    allRows.forEach(r=>{ staffList.forEach(st=>{ if(staffMatch(r.staff,st)) counts[st]++; }); });
     staffStatsEl.style.display='flex';
     staffStatsEl.innerHTML=staffList.map(st=>`
       <div class="staff-stat-btn ${currentFilter==='staff-'+st?'active':''}" onclick="filterByStaff('${st}')">
@@ -449,16 +504,29 @@ function setFilter(val,btn){
   btn.classList.add('active');
   currentPage=1;applyFilters();
 }
+function setCourseFilter(course,btn){
+  if(activeCourseFilter===course){
+    activeCourseFilter=null;
+    btn.classList.remove('active');
+  } else {
+    activeCourseFilter=course;
+    document.getElementById('course-ai-btn').classList.remove('active');
+    document.getElementById('course-seed-btn').classList.remove('active');
+    btn.classList.add('active');
+  }
+  currentPage=1;applyFilters();
+}
 function applyFilters(){
   const q=document.getElementById('search-inp').value.toLowerCase();
   const s=gm('status');const tm=gm('tags');
   filteredRows=allRows.filter(r=>{
-    const mq=!q||[r.name,r.phone,r.email,r.staff,r.line,...(tm[r.phone]||[])].some(v=>String(v).toLowerCase().includes(q));
+    const mq=!q||[r.name,r.phone,r.email,r.staff,r.line,r.course,...(tm[r.phone]||[])].some(v=>String(v).toLowerCase().includes(q));
     const st=s[r.phone]||'未联系';
-    const mf=currentFilter==='all'||st===currentFilter||(currentFilter.startsWith('staff-')&&r.staff===currentFilter.replace('staff-',''));
+    const mf=currentFilter==='all'||st===currentFilter||(currentFilter.startsWith('staff-')&&staffMatch(r.staff,currentFilter.replace('staff-','')));
     const mt=!activeTagFilter||(tm[r.phone]||[]).includes(activeTagFilter);
     const mc=!activeCountryFilter||r.country===activeCountryFilter;
-    return mq&&mf&&mt&&mc;
+    const mcourse=!activeCourseFilter||r.course===activeCourseFilter;
+    return mq&&mf&&mt&&mc&&mcourse;
   });
   currentPage=1;updateStats();renderCards();renderPagination();
 }
@@ -466,7 +534,7 @@ function applyFilters(){
 // RENDER CARDS
 function renderCards(){
   const wrap=document.getElementById('cards-wrap');
-  if(!filteredRows.length){wrap.innerHTML=`<div class="empty"><div class="icon">🌸</div><p>暂无匹配客户</p></div>`;return;}
+  if(!filteredRows.length){wrap.innerHTML=`<div class="empty"><div class="icon">💰</div><p>暂无匹配客户</p></div>`;return;}
   const s=gm('status');const nm=gm('notes');const tm=gm('tags');
   const start=(currentPage-1)*PAGE_SIZE;
   const slice=filteredRows.slice(start,start+PAGE_SIZE);
@@ -480,7 +548,8 @@ function renderCards(){
     const selColor=status==='未联系'?'#FB8C00':status==='已联系'?'#1E88E5':'#43A047';
     const staffBadge=isAdmin&&r.staff?`<span class="card-staff">${esc(r.staff)}</span>`:'';
     const countryBadge=r.country?`<span class="card-country">${countryFlag(r.country)}${esc(r.country)}</span>`:'';
-    const topRight=`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:8px">${staffBadge}${countryBadge}</div>`;
+    const courseBadge=r.course?`<span class="card-course ${r.course===COURSE_AI?'c-ai':'c-seed'}">${r.course===COURSE_AI?'🚀':'🌸'} ${esc(r.course)}</span>`:'';
+    const topRight=`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:8px">${courseBadge}${staffBadge}${countryBadge}</div>`;
     const notePreview=note?`<div class="note-preview">💬 ${esc(note)}</div>`:'';
     const tagsHtml=ALL_TAGS.map(t=>`<span class="tag ${tags.includes(t)?'active':''}" onclick="toggleTag('${esc(r.phone)}','${esc(t)}')">${t}</span>`).join('');
     return `<div class="card ${scls}" id="card-${esc(r.phone.replace(/\+/g,'p'))}">
@@ -497,7 +566,7 @@ function renderCards(){
         ${r.line?`<div class="info-row"><span class="info-icon">💚</span>Line: ${esc(r.line)}</div>`:''}
       </div>
       <div class="tags-wrap">${tagsHtml}</div>
-      ${r.phone?`<button class="wa-btn" onclick="openWA('${esc(r.phone)}','${esc(r.name)}')">💬 WhatsApp 联系 ${esc(r.name)}</button>`:''}
+      ${r.phone?`<button class="wa-btn" onclick="openWA('${esc(r.phone)}','${esc(r.name)}','${esc(r.course||'')}')">💬 WhatsApp 联系 ${esc(r.name)}</button>`:''}
       <div class="card-actions">
         <select class="status-sel" onchange="setStatus('${esc(r.phone)}',this.value)" style="border-color:${selColor};color:${selColor}">
           <option value="未联系" ${status==='未联系'?'selected':''}>⭕ 未联系</option>
@@ -561,10 +630,12 @@ function applyTagFilter(){
 }
 
 // WA MODAL
-function openWA(phone,name){
+function openWA(phone,name,course){
   activeWAPhone=phone;
   const staffName=currentUser.staff||currentUser.name;
-  const msg=`同学您好，我是您这次《播种幸福4天营》的服务老师 ${staffName}，现在对接您学习 🌸`;
+  const msg=course===COURSE_AI
+    ?`同学您好，我是您这次《AI财道陪跑4天营》的服务老师 ${staffName}，现在对接您学习 🚀`
+    :`同学您好，我是您这次《播种幸福4天营》的服务老师 ${staffName}，现在对接您学习 🌸`;
   document.getElementById('wa-sub').textContent=`发送给：${name} (${phone})`;
   document.getElementById('wa-preview').textContent=msg;
   document.getElementById('wa-ta').value=msg;
@@ -615,6 +686,7 @@ function doExport(){
 
   const data=rows.map(r=>({
     '时间':r.time,
+    '课程':r.course||'',
     '姓名':r.name,
     'WhatsApp':r.phone,
     '邮箱':r.email,
@@ -629,9 +701,9 @@ function doExport(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,'客户名单',ws);
   // 设置列宽
-  ws['!cols']=[{wch:18},{wch:14},{wch:16},{wch:24},{wch:14},{wch:12},{wch:10},{wch:28},{wch:30}];
+  ws['!cols']=[{wch:18},{wch:10},{wch:14},{wch:16},{wch:24},{wch:14},{wch:12},{wch:10},{wch:28},{wch:30}];
   const now=new Date();
-  const fname=`播种幸福客户名单_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.xlsx`;
+  const fname=`客户名单_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.xlsx`;
   XLSX.writeFile(wb,fname);
   closeExport();
 }
