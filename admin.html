@@ -43,8 +43,9 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .stat{text-align:center;padding:10px 4px}
 .stat-n{font-size:1.4rem;font-weight:700;color:#fff;line-height:1}
 .stat-l{font-size:0.62rem;color:rgba(255,255,255,0.82);margin-top:3px}
-.staff-stats{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px}
-.staff-stat-btn{flex:1;min-width:calc(50% - 6px);background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:7px 10px;text-align:center;cursor:pointer;transition:all 0.2s}
+.staff-stats{display:flex;flex-wrap:nowrap;gap:6px;padding:0 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.staff-stats::-webkit-scrollbar{display:none}
+.staff-stat-btn{flex:0 0 auto;min-width:76px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:7px 12px;text-align:center;cursor:pointer;transition:all 0.2s}
 .staff-stat-btn:hover,.staff-stat-btn.active{background:rgba(255,255,255,0.35);border-color:rgba(255,255,255,0.6)}
 .staff-stat-btn .sn{font-size:1.1rem;font-weight:700;color:#fff;line-height:1}
 .staff-stat-btn .sl{font-size:0.65rem;color:rgba(255,255,255,0.85);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -74,6 +75,7 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .card.s-converted::before{background:var(--green)}
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
 .card-name{font-size:1rem;font-weight:700}
+.name-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .card-time{font-size:0.72rem;color:var(--text-soft);margin-top:2px}
 .card-staff{font-size:0.74rem;color:var(--deep-rose);font-weight:500;background:#FFF3DD;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
 .card-country{font-size:0.74rem;color:#1565C0;font-weight:500;background:#E3F2FD;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
@@ -290,7 +292,7 @@ function staffMatch(rowStaff, groupName){
 }
 
 // ★ 统一脚本网址（播种幸福+AI财道共用一张表）：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxjh7U0A_MDGDZ1ProYw1JXqEZzbztXtSEWYpD8Gjyz2X_O5lgxJPqBus-8OWU3oc/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxG6OpWTEjU_iFP6wddgG0pVA7uvzOKjrAykt_SUmskgqHOgbOSBrGVuwGO1fhnF10/exec';
 const COURSE_AI = 'AI财道';
 const COURSE_SEED = '播种幸福';
 const PAGE_SIZE = 15;
@@ -549,16 +551,14 @@ function renderCards(){
     const staffBadge=isAdmin&&r.staff?`<span class="card-staff">${esc(r.staff)}</span>`:'';
     const countryBadge=r.country?`<span class="card-country">${countryFlag(r.country)}${esc(r.country)}</span>`:'';
     const courseBadge=r.course?`<span class="card-course ${r.course===COURSE_AI?'c-ai':'c-seed'}">${r.course===COURSE_AI?'🚀':'🌸'} ${esc(r.course)}</span>`:'';
-    const topRight=`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:8px">${courseBadge}${staffBadge}${countryBadge}</div>`;
     const notePreview=note?`<div class="note-preview">💬 ${esc(note)}</div>`:'';
     const tagsHtml=ALL_TAGS.map(t=>`<span class="tag ${tags.includes(t)?'active':''}" onclick="toggleTag('${esc(r.phone)}','${esc(t)}')">${t}</span>`).join('');
     return `<div class="card ${scls}" id="card-${esc(r.phone.replace(/\+/g,'p'))}">
       <div class="card-top">
         <div style="flex:1;min-width:0">
-          <div class="card-name">${esc(r.name)}</div>
+          <div class="name-row"><span class="card-name">${esc(r.name)}</span>${countryBadge}${staffBadge}${courseBadge}</div>
           <div class="card-time">🕐 ${r.time}</div>
         </div>
-        ${topRight}
       </div>
       <div class="card-info">
         ${r.phone?`<div class="info-row"><span class="info-icon">📱</span>${r.phone}</div>`:''}
