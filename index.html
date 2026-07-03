@@ -562,7 +562,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
 <!-- ══ VIDEO SECTION ══ -->
 <section class="sec bg-white" style="padding:20px 14px 0">
   <div class="wrap">
-    <!-- 视频播放器：裁掉 Google Drive 顶部/底部控件，消除黑边，保持 9:16 比例 -->
+    <!-- 视频播放器：YouTube 不公开视频嵌入，9:16 竖版，无限流、全球CDN加速 -->
     <div style="
       max-width:min(380px,92vw);margin:0 auto;
       border-radius:16px;overflow:hidden;
@@ -570,19 +570,18 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       background:#000;
       position:relative;
       aspect-ratio:9/16;">
-      <!-- iframe 原始比例播放，不裁切、不缩放 -->
       <div style="position:absolute;inset:0;overflow:hidden;border-radius:16px;">
         <iframe
-          src="https://drive.google.com/file/d/1Z0DIIymTY23gKVWTDnS4_7ICq5mkWoZ_/preview"
+          src="https://www.youtube-nocookie.com/embed/oy-2D41_Bw0?rel=0&playsinline=1&modestbranding=1"
           style="
             position:absolute;
             top:0;left:0;
             width:100%;
             height:100%;
             border:none;display:block;pointer-events:auto;"
-          allow="autoplay; fullscreen"
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
           allowfullscreen
-          referrerpolicy="no-referrer-when-downgrade">
+          referrerpolicy="strict-origin-when-cross-origin">
         </iframe>
       </div>
     </div>
