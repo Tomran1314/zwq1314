@@ -1018,7 +1018,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
 <script>
 
 // ★ 统一脚本网址：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
-var GAS_URL='https://script.google.com/macros/s/AKfycbzWKbDE6E17pnhELYCo2OM3iJz_0yYGUVWLqbhhtjjtetG9YGhC6lVuk6ePDwLeHkc/exec';
+var GAS_URL='https://script.google.com/macros/s/AKfycbwPr7rYQejBA3K7Dw3AoIaTAATZizRWiH1Ya1j-weoP1cvSD9XfKVnViCkfuAYvQgM/exec';
 var COURSE_NAME='AI财道陪跑4天营';
 // 客服名单（顺序与 Apps Script 花名册一致；前3位为台湾名单专属池）
 var _waAll=[
@@ -1102,7 +1102,7 @@ function submitModal(){
   var msg=encodeURIComponent('老师您好，我想预约《'+COURSE_NAME+'》直播课学习，我是：'+n);
   var waBtn=document.getElementById('wa-btn');
   var waImg=document.getElementById('wa-img-link');
-  var _redirected=false,_replied=false;
+  var _redirected=false,_replied=false,_clickWait=false;
   function _setWA(nm){if(_redirected)return;var href='https://wa.me/'+nm+'?text='+msg;if(waBtn)waBtn.href=href;if(waImg)waImg.href=href;}
   _setWA(num);
   function _go(){
@@ -1111,12 +1111,27 @@ function submitModal(){
     if(waBtn)waBtn.href=_waUrl;if(waImg)waImg.href=_waUrl;
     var _w=window.open(_waUrl,'_blank');if(!_w){window.location.href=_waUrl;}
   }
+  // 学员手动点击按钮/图片：分配结果没回来之前一律拦截并排队，
+  // 结果一到立刻跳转——彻底杜绝"点到兜底客服、后台记的却是另一位"
+  function _waClick(e){
+    if(_redirected)return; // 已跳转过，放行默认行为
+    e.preventDefault();
+    if(_replied){_go();return;}
+    _clickWait=true;
+    var cd=document.getElementById('wa-countdown');
+    if(cd)cd.innerHTML='正在为您分配专属老师，马上就好…';
+    if(waBtn)waBtn.style.opacity='0.65';
+  }
+  if(waBtn)waBtn.addEventListener('click',_waClick);
+  if(waImg)waImg.addEventListener('click',_waClick);
   // 提交到 Apps Script：服务端做全局轮流分配 + 重复号码固定原客服，并写入名单
   var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME});
   fetch(GAS_URL+'?'+params.toString()).then(function(r){return r.json();}).then(function(res){
     if(res&&res.ok&&res.num){num=String(res.num);staffName=res.staff||staffName;_setWA(num);}
     _replied=true;
-  }).catch(function(){_replied=true;});
+    if(waBtn)waBtn.style.opacity='';
+    if(_clickWait)_go();
+  }).catch(function(){_replied=true;if(waBtn)waBtn.style.opacity='';if(_clickWait)_go();});
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
   // 倒计时结束后：必须等服务端分配结果回来才跳转（最多再等8秒），
