@@ -534,7 +534,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <span class="cd-sep">:</span>
       <div class="cd-box"><span class="cd-n" id="cd-secs">00</span><span class="cd-u">秒</span></div>
     </div>
-    <div class="cd-sub">📅 7月7日（周二）· 晚上 19:00 正式开播</div>
+    <div class="cd-sub">📅 7月11日（周六）· 晚上 19:00 加场公开直播</div>
     <div class="info-pills">
       <div class="ipill"><span class="iv">线上直播</span><span class="il">授课形式</span></div>
       <div class="ipill"><span class="iv">19:00</span><span class="il">每晚开播</span></div>
@@ -955,7 +955,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <div class="s-title">报名成功！</div>
       <div class="s-sub">你的【AI财道陪跑4天营】席位已锁定 🌱</div>
       <div class="s-info-box">
-        <div class="s-info-row">📅&nbsp; 每周二至五，连续4晚</div>
+        <div class="s-info-row">📅&nbsp; 7月11日（周六）开课</div>
         <div class="s-info-row">⏰&nbsp; 每晚 7:00pm（马来西亚时间）</div>
         <div class="s-info-row">💻&nbsp; 线上直播</div>
       </div>
@@ -1153,24 +1153,36 @@ function submitModal(){
     }
   },1000);
 }
-// Countdown — 目标：2026年7月7日 19:00 MYT (UTC+8) = UTC 11:00
-var TARGET_TIME = new Date(Date.UTC(2026, 6, 7, 11, 0, 0)); // 月份从0起算，6=7月
+// Countdown — 场次表：当前场次开播后自动倒数下一期，并同步更新页面日期文案
+var SCHEDULE = [
+  { t: Date.UTC(2026, 6, 11, 11, 0, 0), sub: '📅 7月11日（周六）· 晚上 19:00 加场公开直播', info: '📅&nbsp; 7月11日（周六）开课' },
+  { t: Date.UTC(2026, 6, 14, 11, 0, 0), sub: '📅 7月14-17日 · 每晚 19:00 开课',             info: '📅&nbsp; 7月14-17日 开课' }
+];
+var LIVE_WINDOW_MS = 3 * 3600 * 1000; // 开播后3小时内显示"直播进行中"
 function pad(n){return n<10?'0'+n:''+n;}
 function tick(){
-  var now = new Date();
-  var diff = Math.max(0, Math.floor((TARGET_TIME - now) / 1000));
+  var now = Date.now();
+  // 选定当前目标：第一个还没开播的场次；全播完则停在最后一场
+  var cur = SCHEDULE[SCHEDULE.length-1];
+  for (var i=0;i<SCHEDULE.length;i++){ if (now < SCHEDULE[i].t){ cur = SCHEDULE[i]; break; } }
+  var diff = Math.max(0, Math.floor((cur.t - now) / 1000));
   function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   s('cd-days',  pad(Math.floor(diff / 86400)));
   s('cd-hours', pad(Math.floor((diff % 86400) / 3600)));
   s('cd-mins',  pad(Math.floor((diff % 3600) / 60)));
   s('cd-secs',  pad(diff % 60));
-  // 课程开始后显示"直播进行中"
-  if(diff === 0){
-    var liveEl = document.getElementById('cd-live-badge');
-    if(liveEl) liveEl.style.display = 'flex';
-    var rowEl = document.getElementById('cd-row');
-    if(rowEl) rowEl.style.opacity = '0.4';
-  }
+  // 同步日期文案（倒计时下方 + 报名成功信息栏）
+  var subEl = document.querySelector('.cd-sub');
+  if (subEl && subEl.textContent !== cur.sub) subEl.textContent = cur.sub;
+  var infoEl = document.querySelector('.s-info-row');
+  if (infoEl && infoEl.innerHTML.indexOf('📅') > -1 && infoEl.innerHTML !== cur.info) infoEl.innerHTML = cur.info;
+  // 任一场次开播后3小时内显示"直播进行中"，之后自动恢复倒数下一期
+  var live = false;
+  for (var j=0;j<SCHEDULE.length;j++){ if (now >= SCHEDULE[j].t && now - SCHEDULE[j].t < LIVE_WINDOW_MS){ live = true; break; } }
+  var liveEl = document.getElementById('cd-live-badge');
+  if(liveEl) liveEl.style.display = live ? 'flex' : 'none';
+  var rowEl = document.getElementById('cd-row');
+  if(rowEl) rowEl.style.opacity = live ? '0.4' : '';
 }
 tick();
 setInterval(tick, 1000);
