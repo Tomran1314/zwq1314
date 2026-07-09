@@ -418,6 +418,14 @@ function updateStats(){
   document.getElementById('st-contacted').textContent=c;
   document.getElementById('st-converted').textContent=cv;
 
+  // 课程筛选按钮上显示各课程人数
+  let aiN=0,seedN=0;
+  allRows.forEach(r=>{ if(r.course===COURSE_AI)aiN++; else seedN++; });
+  const aiBtn=document.getElementById('course-ai-btn');
+  const seedBtn=document.getElementById('course-seed-btn');
+  if(aiBtn)aiBtn.textContent='🚀 AI财道 '+aiN;
+  if(seedBtn)seedBtn.textContent='🌸 播种幸福 '+seedN;
+
   // 管理员显示客服分类统计
   const staffStatsEl=document.getElementById('staff-stats');
   if(currentUser.role==='admin'){
