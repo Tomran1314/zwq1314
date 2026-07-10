@@ -1018,7 +1018,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
 <script>
 
 // ★ 统一脚本网址：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
-var GAS_URL='https://script.google.com/macros/s/AKfycbx8hbbnvdV5cgomL0QFVuCGSVNcFbtmiSdpP7IGsxt62-QpzleDGwfH7F_jKHPIPy4/exec';
+var GAS_URL='https://script.google.com/macros/s/AKfycby9NfXv8JvykVcU1wALXWQq18wrsaEfkqoZJgWDVEMldATGN1CkOHmYn0uRKjOV3cw/exec';
 var COURSE_NAME='AI财道陪跑4天营';
 // 客服名单（顺序与 Apps Script 花名册一致；前3位为台湾名单专属池）
 var _waAll=[
@@ -1031,6 +1031,8 @@ var _waAll=[
   {name:'大鹏老师',num:'60173134319'}
 ];
 var _waTW=_waAll.slice(0,3);
+// 非台湾名单兜底池：排除只接台湾的馨予老师（与服务端规则一致）
+var _waGEN=_waAll.filter(function(x){return x.name!=='馨予老师';});
 var _waIndex=0;var _waIndexTW=0;
 var phoneRules={
   '+60':{min:9,max:11,name:'马来西亚',hint:'9-11位'},
@@ -1094,7 +1096,7 @@ function submitModal(){
   // 客户端预选（仅作后端不可达时的兜底显示），最终以 Apps Script 服务端分配为准
   var sel;
   if(c==='+886'){ sel=_waTW[_waIndexTW%_waTW.length]; _waIndexTW++; }
-  else { sel=_waAll[_waIndex%_waAll.length]; _waIndex++; }
+  else { sel=_waGEN[_waIndex%_waGEN.length]; _waIndex++; }
   var num=sel.num,staffName=sel.name;
   document.getElementById('form-screen').style.display='none';
   document.getElementById('success-screen').style.display='block';
