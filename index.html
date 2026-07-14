@@ -534,7 +534,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <span class="cd-sep">:</span>
       <div class="cd-box"><span class="cd-n" id="cd-secs">00</span><span class="cd-u">秒</span></div>
     </div>
-    <div class="cd-sub">📅 7月12日（周日）· 晚上 19:00 全球直播大课</div>
+    <div class="cd-sub">📅 7月18日（周六）· 晚上 19:00 全球直播大课</div>
     <div class="info-pills">
       <div class="ipill"><span class="iv">线上直播</span><span class="il">授课形式</span></div>
       <div class="ipill"><span class="iv">19:00</span><span class="il">每晚开播</span></div>
@@ -959,7 +959,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <div class="s-title">报名成功！</div>
       <div class="s-sub">你的【AI财道陪跑4天营】席位已锁定 🌱</div>
       <div class="s-info-box">
-        <div class="s-info-row">🌏&nbsp; 7月12日（周日）全球直播大课</div>
+        <div class="s-info-row">🌏&nbsp; 7月18日（周六）全球直播大课</div>
         <div class="s-info-row">📅&nbsp; 7月14-17日 每晚19:00开课（吉隆坡时间）</div>
         <div class="s-info-row">💻&nbsp; 线上直播</div>
         <div class="s-info-row">❤️&nbsp; 特殊情况：可申请直播回放</div>
@@ -1162,8 +1162,10 @@ function submitModal(){
 }
 // Countdown — 场次表：当前场次开播后自动倒数下一期，并同步更新页面日期文案
 var SCHEDULE = [
-  { t: Date.UTC(2026, 6, 12, 11, 0, 0), sub: '📅 7月12日（周日）· 晚上 19:00 全球直播大课' },
-  { t: Date.UTC(2026, 6, 14, 11, 0, 0), sub: '📅 7月14-17日 · 每晚 19:00 开课' }
+  // end = 该场次在页面上保留到什么时候（7/18 24:00 MYT = UTC 16:00），过后自动切下一场
+  // 以后要加下一场直播（如 7/25），照第一行格式再加一行即可
+  { t: Date.UTC(2026, 6, 18, 11, 0, 0), end: Date.UTC(2026, 6, 18, 16, 0, 0), sub: '📅 7月18日（周六）· 晚上 19:00 全球直播大课' },
+  { t: Date.UTC(2026, 6, 22, 11, 0, 0), sub: '📅 7月22-25日 · 每晚 19:00 开课' }
 ];
 var LIVE_WINDOW_MS = 3 * 3600 * 1000; // 开播后3小时内显示"直播进行中"
 function pad(n){return n<10?'0'+n:''+n;}
@@ -1171,7 +1173,7 @@ function tick(){
   var now = Date.now();
   // 选定当前目标：第一个还没开播的场次；全播完则停在最后一场
   var cur = SCHEDULE[SCHEDULE.length-1];
-  for (var i=0;i<SCHEDULE.length;i++){ if (now < SCHEDULE[i].t){ cur = SCHEDULE[i]; break; } }
+  for (var i=0;i<SCHEDULE.length;i++){ if (now < (SCHEDULE[i].end || SCHEDULE[i].t)){ cur = SCHEDULE[i]; break; } }
   var diff = Math.max(0, Math.floor((cur.t - now) / 1000));
   function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   s('cd-days',  pad(Math.floor(diff / 86400)));
