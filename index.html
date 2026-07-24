@@ -972,8 +972,8 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <div class="s-title">报名成功！</div>
       <div class="s-sub">你的【AI财道陪跑4天营】席位已锁定 🌱</div>
       <div class="s-info-box">
-        <div class="s-info-row">📅&nbsp; <span id="s-camp-date">7月28-31日</span> 每晚19:00开课（吉隆坡时间）</div>
-        <div class="s-info-row">🌏&nbsp; <span id="s-live-date">7月25日（周六）</span>晚上19:00 全球直播大课</div>
+        <div class="s-info-row">📅&nbsp; 7月21-24日 每晚19:00开课（吉隆坡时间）</div>
+        <div class="s-info-row">🌏&nbsp; 7月25日（周六）晚上19:00 全球直播大课</div>
         <div class="s-info-row">💻&nbsp; 线上直播</div>
         <div class="s-info-row">❤️&nbsp; 特殊情况：可申请直播回放</div>
       </div>
@@ -1193,38 +1193,27 @@ function submitModal(){
     }
   },1000);
 }
-// Countdown — 课程时间表：与台湾版同步（皆为马来西亚/新加坡时间 UTC+8=吉隆坡时间；月份从0起算，6=7月）
-// 阶段1：现在 → 7/25 晚上10:00　倒数 7/25 19:00 全球直播；弹窗营期已提前显示下一期 7月28-31日
-// 阶段2：7/25 22:00 → 7/28 晚上11:00　倒数 7/28 19:00（7月28-31日 4天营）
-// 阶段3：7/28 23:00 之后　倒数 8/1（周六）19:00 全球直播
-var CD_SCHEDULE = [
-  { until: Date.UTC(2026,6,25,14,0,0), target: Date.UTC(2026,6,25,11,0,0), label: '📅 7月25日（周六）· 晚上 19:00 全球直播大课', live: '7月25日（周六）', camp: '7月28-31日' },
-  { until: Date.UTC(2026,6,28,15,0,0), target: Date.UTC(2026,6,28,11,0,0), label: '📅 7月28-31日 · 每晚 19:00 开课',        live: '8月1日（周六）', camp: '7月28-31日' },
-  { until: Date.UTC(2026,7,9,16,0,0),  target: Date.UTC(2026,7,1,11,0,0),  label: '📅 8月1日（周六）· 晚上 19:00 全球直播大课', live: '8月1日（周六）', camp: '7月28-31日' }
+// Countdown — 场次表：当前场次开播后自动倒数下一期，并同步更新页面日期文案
+var SCHEDULE = [
+  { t: Date.UTC(2026, 6, 21, 11, 0, 0), end: Date.UTC(2026, 6, 21, 15, 0, 0), sub: '📅 7月21-24日 · 每晚 19:00 开课' },
+  { t: Date.UTC(2026, 6, 25, 11, 0, 0), sub: '📅 7月25日（周六）· 晚上 19:00 全球直播大课' }
 ];
-function _cdStage(){
-  var now = Date.now();
-  for(var i=0;i<CD_SCHEDULE.length;i++){ if(now < CD_SCHEDULE[i].until) return CD_SCHEDULE[i]; }
-  return CD_SCHEDULE[CD_SCHEDULE.length-1];
-}
-var LIVE_WINDOW_MS = 3 * 3600 * 1000; // 开播后3小时内显示"直播进行中"
+var LIVE_WINDOW_MS = 3 * 3600 * 1000;
 function pad(n){return n<10?'0'+n:''+n;}
 function tick(){
-  var stage = _cdStage();
   var now = Date.now();
-  var diff = Math.max(0, Math.floor((stage.target - now) / 1000));
-  function s(id,v){var e=document.getElementById(id);if(e&&e.textContent!==v)e.textContent=v;}
+  var cur = SCHEDULE[SCHEDULE.length-1];
+  for (var i=0;i<SCHEDULE.length;i++){ if (now < (SCHEDULE[i].end || SCHEDULE[i].t)){ cur = SCHEDULE[i]; break; } }
+  var diff = Math.max(0, Math.floor((cur.t - now) / 1000));
+  function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   s('cd-days',  pad(Math.floor(diff / 86400)));
   s('cd-hours', pad(Math.floor((diff % 86400) / 3600)));
   s('cd-mins',  pad(Math.floor((diff % 3600) / 60)));
   s('cd-secs',  pad(diff % 60));
-  // 同步日期文案（倒计时下方 + 报名成功信息栏，两处独立日期）
   var subEl = document.querySelector('.cd-sub');
-  if (subEl && subEl.textContent !== stage.label) subEl.textContent = stage.label;
-  s('s-live-date', stage.live);
-  s('s-camp-date', stage.camp);
-  // 开播后3小时内显示"直播进行中"
-  var live = (now >= stage.target && now - stage.target < LIVE_WINDOW_MS);
+  if (subEl && subEl.textContent !== cur.sub) subEl.textContent = cur.sub;
+  var live = false;
+  for (var j=0;j<SCHEDULE.length;j++){ if (now >= SCHEDULE[j].t && now - SCHEDULE[j].t < LIVE_WINDOW_MS){ live = true; break; } }
   var liveEl = document.getElementById('cd-live-badge');
   if(liveEl) liveEl.style.display = live ? 'flex' : 'none';
   var rowEl = document.getElementById('cd-row');
