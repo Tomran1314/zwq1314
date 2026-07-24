@@ -296,12 +296,13 @@ function staffMatch(rowStaff, groupName){
 }
 
 // ★ 统一脚本网址（播种幸福+AI财道共用一张表）：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9NfXv8JvykVcU1wALXWQq18wrsaEfkqoZJgWDVEMldATGN1CkOHmYn0uRKjOV3cw/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx70Cif8riB4YtG0tSDNMP8923aqQ6bohvI4Xgeu0N-bRcBCF2BO-8Ebs7AeOfVIps/exec';
+    const ADMIN_KEY = 'hc_zwq_2026_x7k9'; // 与 Apps Script 里的 ADMIN_KEY 一致
 const COURSE_AI = 'AI财道';
 const COURSE_SEED = '播种幸福';
 const PAGE_SIZE = 15;
 
-const ALL_TAGS = ['🔥 高意向','💰 已付款','✅ 确定上课','🔕 未回复','📅 下一期','🤔 考虑中','❌ 不感兴趣','📞 需回电','🤝 汇播合伙人','🎓 训练营'];
+const ALL_TAGS = ['🔥 高意向','💰 已付款','✅ 确定上课','🔕 未回复','📅 下一期','🤔 考虑中','❌ 不感兴趣','📞 需回电','🤝 汇播合伙人','💼 之前报名合伙人','🎓 训练营'];
 
 let currentUser=null, allRows=[], filteredRows=[];
 let currentPage=1, currentFilter='all', activeTagFilter=null, activeCourseFilter=null;
@@ -391,7 +392,7 @@ async function loadData(){
   document.getElementById('err-bar').style.display='none';
   let rows=[];
   try{
-    const data=await fetch(SCRIPT_URL).then(r=>r.json());
+    const data=await fetch(SCRIPT_URL+'?action=list&key='+encodeURIComponent(ADMIN_KEY)).then(r=>r.json());
     if(Array.isArray(data)) rows=parseRows(data);
   }catch(e){}
 
