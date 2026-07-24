@@ -951,19 +951,6 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
 <!-- 8s POPUP (ref image1) -->
 
 <!-- FORM MODAL -->
-<!-- 微信环境引导：微信封锁外部App唤起，需用系统浏览器打开才能加WhatsApp -->
-<div id="wx-guide" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);flex-direction:column;align-items:center;justify-content:flex-start;padding:24px;text-align:center;color:#fff">
-  <div style="align-self:flex-end;font-size:44px;line-height:1;animation:wxbounce 1s infinite;margin-right:6px">⬆️</div>
-  <div style="margin-top:18px;font-size:20px;font-weight:900;line-height:1.7">
-    请点击右上角「<span style="font-size:24px">⋯</span>」<br>
-    选择「<span style="color:#FFD34D">在浏览器中打开</span>」
-  </div>
-  <div style="margin-top:14px;font-size:15px;color:#ddd;line-height:1.8">
-    即可自动打开 WhatsApp<br>加老师好友、领取上课链接 🎁
-  </div>
-  <div onclick="document.getElementById('wx-guide').style.display='none'" style="margin-top:26px;padding:10px 26px;border:1px solid #999;border-radius:22px;font-size:14px;color:#ccc">我知道了</div>
-</div>
-<style>@keyframes wxbounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}</style>
 <div class="overlay" id="form-modal" onclick="closeFormModal(event)">
   <div class="mbox">
     <button class="mclose" onclick="closeFormModal()">✕</button>
@@ -1036,21 +1023,21 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
 <script>
 
 // ★ 统一脚本网址：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
-var GAS_URL='https://script.google.com/macros/s/AKfycbx70Cif8riB4YtG0tSDNMP8923aqQ6bohvI4Xgeu0N-bRcBCF2BO-8Ebs7AeOfVIps/exec';
+var GAS_URL='https://script.google.com/macros/s/AKfycby9NfXv8JvykVcU1wALXWQq18wrsaEfkqoZJgWDVEMldATGN1CkOHmYn0uRKjOV3cw/exec';
 var COURSE_NAME='AI财道陪跑4天营';
 // 客服名单（顺序与 Apps Script 花名册一致；前3位为台湾名单专属池）
 var _waAll=[
   {name:'志颖老师',num:'601127002295'},
   {name:'越聪老师',num:'601169479857'},
   {name:'馨予老师',num:'60139111413'},
-  {name:'齐得老师',num:'601139410137'},
-  {name:'Sam老师',num:'601170225883'}
+  // {name:'齐得老师',num:'601139410137'}, // ← 已暂停接新名单
+  {name:'Sam老师',num:'601170225883'},
   // {name:'小何老师',num:'60145461319'}, // ← 已暂停接新名单
-  // {name:'大鹏老师',num:'60173134319'}  // ← 已暂停接新名单（国际池已移除）
+  // {name:'董润知老师',num:'60173134319'} // ← 已暂停接新名单
 ];
-var _waTW=_waAll.slice(0,4); // 台湾池：志颖/越聪/馨予/齐得 4人轮流（与后端v3.3一致）
-// 非台湾名单兜底池：排除只接台湾的馨予、齐得老师（与服务端规则一致）
-var _waGEN=_waAll.filter(function(x){return x.name!=='馨予老师'&&x.name!=='齐得老师';});
+var _waTW=_waAll.slice(0,3);
+// 非台湾名单兜底池：排除只接台湾的馨予老师（与服务端规则一致）
+var _waGEN=_waAll.filter(function(x){return x.name!=='馨予老师';});
 var _waIndex=0;var _waIndexTW=0;
 var phoneRules={
   '+60':{min:9,max:11,name:'马来西亚',hint:'9-11位'},
@@ -1125,23 +1112,11 @@ function submitModal(){
   var _redirected=false,_replied=false,_clickWait=false;
   function _setWA(nm){if(_redirected)return;var href='https://wa.me/'+nm+'?text='+msg;if(waBtn)waBtn.href=href;if(waImg)waImg.href=href;}
   _setWA(num);
-  var IS_WECHAT=/MicroMessenger/i.test(navigator.userAgent||'');
-  function _showWxGuide(){
-    var g=document.getElementById('wx-guide');if(g)g.style.display='flex';
-    var cd=document.getElementById('wa-countdown');
-    if(cd)cd.innerHTML='微信内无法直接打开 WhatsApp，请按提示用浏览器打开';
-  }
   function _go(){
     if(_redirected)return;_redirected=true;
     var _waUrl='https://wa.me/'+num+'?text='+msg;
     if(waBtn)waBtn.href=_waUrl;if(waImg)waImg.href=_waUrl;
-    if(IS_WECHAT){_showWxGuide();return;} // 微信封锁外部App唤起，跳过去只会卡住
     var _w=window.open(_waUrl,'_blank');if(!_w){window.location.href=_waUrl;}
-  }
-  if(IS_WECHAT){
-    [waBtn,waImg].forEach(function(el){
-      if(el)el.addEventListener('click',function(ev){ev.preventDefault();_showWxGuide();});
-    });
   }
   // 学员手动点击按钮/图片：分配结果没回来之前一律拦截并排队，
   // 结果一到立刻跳转——彻底杜绝"点到兜底客服、后台记的却是另一位"
@@ -1157,21 +1132,13 @@ function submitModal(){
   if(waBtn)waBtn.addEventListener('click',_waClick);
   if(waImg)waImg.addEventListener('click',_waClick);
   // 提交到 Apps Script：服务端做全局轮流分配 + 重复号码固定原客服，并写入名单
-  var _sid=Date.now().toString(36)+Math.random().toString(36).slice(2,8); // 本次提交唯一编号
-  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME,sid:_sid});
-  if(window._subPhone===fp){if(window._subStaff){num=window._subStaff.num;staffName=window._subStaff.name;_setWA(num);}_replied=true;if(waBtn)waBtn.style.opacity='';if(_clickWait)_go();}
-  else{window._subPhone=fp;
+  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME});
   fetch(GAS_URL+'?'+params.toString()).then(function(r){return r.json();}).then(function(res){
     if(res&&res.ok&&res.num){num=String(res.num);staffName=res.staff||staffName;_setWA(num);}
-    window._subStaff={num:num,name:staffName};
     _replied=true;
     if(waBtn)waBtn.style.opacity='';
     if(_clickWait)_go();
-  }).catch(function(){
-    // fetch失败（网络受限/内置浏览器拦截）→ 图片请求同sid补发一次，服务端去重
-    try{new Image().src=GAS_URL+'?'+params.toString();}catch(e){}
-    _replied=true;if(waBtn)waBtn.style.opacity='';if(_clickWait)_go();
-  });}
+  }).catch(function(){_replied=true;if(waBtn)waBtn.style.opacity='';if(_clickWait)_go();});
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
   // 倒计时结束后：必须等服务端分配结果回来才跳转（最多再等8秒），
@@ -1195,13 +1162,16 @@ function submitModal(){
 }
 // Countdown — 场次表：当前场次开播后自动倒数下一期，并同步更新页面日期文案
 var SCHEDULE = [
+  // end = 该场次在页面上保留到什么时候（7/21 23:00 MYT = UTC 15:00），过后自动切下一场
+  // 以后要加新场次，照格式再加一行即可
   { t: Date.UTC(2026, 6, 21, 11, 0, 0), end: Date.UTC(2026, 6, 21, 15, 0, 0), sub: '📅 7月21-24日 · 每晚 19:00 开课' },
   { t: Date.UTC(2026, 6, 25, 11, 0, 0), sub: '📅 7月25日（周六）· 晚上 19:00 全球直播大课' }
 ];
-var LIVE_WINDOW_MS = 3 * 3600 * 1000;
+var LIVE_WINDOW_MS = 3 * 3600 * 1000; // 开播后3小时内显示"直播进行中"
 function pad(n){return n<10?'0'+n:''+n;}
 function tick(){
   var now = Date.now();
+  // 选定当前目标：第一个还没开播的场次；全播完则停在最后一场
   var cur = SCHEDULE[SCHEDULE.length-1];
   for (var i=0;i<SCHEDULE.length;i++){ if (now < (SCHEDULE[i].end || SCHEDULE[i].t)){ cur = SCHEDULE[i]; break; } }
   var diff = Math.max(0, Math.floor((cur.t - now) / 1000));
@@ -1210,8 +1180,10 @@ function tick(){
   s('cd-hours', pad(Math.floor((diff % 86400) / 3600)));
   s('cd-mins',  pad(Math.floor((diff % 3600) / 60)));
   s('cd-secs',  pad(diff % 60));
+  // 同步日期文案（倒计时下方 + 报名成功信息栏）
   var subEl = document.querySelector('.cd-sub');
   if (subEl && subEl.textContent !== cur.sub) subEl.textContent = cur.sub;
+  // 任一场次开播后3小时内显示"直播进行中"，之后自动恢复倒数下一期
   var live = false;
   for (var j=0;j<SCHEDULE.length;j++){ if (now >= SCHEDULE[j].t && now - SCHEDULE[j].t < LIVE_WINDOW_MS){ live = true; break; } }
   var liveEl = document.getElementById('cd-live-badge');
