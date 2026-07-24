@@ -959,8 +959,8 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <div class="s-title">报名成功！</div>
       <div class="s-sub">你的【AI财道陪跑4天营】席位已锁定 🌱</div>
       <div class="s-info-box">
-        <div class="s-info-row">📅&nbsp; 7月21-24日 每晚19:00开课（吉隆坡时间）</div>
-        <div class="s-info-row">🌏&nbsp; 7月25日（周六）晚上19:00 全球直播大课</div>
+        <div class="s-info-row">📅&nbsp; 7月28-31日 每晚19:00开课（吉隆坡时间）</div>
+        <div class="s-info-row">🌏&nbsp; 8月1日（周六）晚上19:00 全球直播大课</div>
         <div class="s-info-row">💻&nbsp; 线上直播</div>
         <div class="s-info-row">❤️&nbsp; 特殊情况：可申请直播回放</div>
       </div>
@@ -1030,14 +1030,14 @@ var _waAll=[
   {name:'志颖老师',num:'601127002295'},
   {name:'越聪老师',num:'601169479857'},
   {name:'馨予老师',num:'60139111413'},
-  // {name:'齐得老师',num:'601139410137'}, // ← 已暂停接新名单
-  {name:'Sam老师',num:'601170225883'},
+  {name:'齐得老师',num:'601139410137'},
+  {name:'Sam老师',num:'601170225883'}
   // {name:'小何老师',num:'60145461319'}, // ← 已暂停接新名单
   // {name:'董润知老师',num:'60173134319'} // ← 已暂停接新名单
 ];
-var _waTW=_waAll.slice(0,3);
-// 非台湾名单兜底池：排除只接台湾的馨予老师（与服务端规则一致）
-var _waGEN=_waAll.filter(function(x){return x.name!=='馨予老师';});
+var _waTW=_waAll.slice(0,4); // 台湾池：志颖/越聪/馨予/齐得 4人轮流
+// 非台湾名单兜底池：排除只接台湾的馨予、齐得老师（与服务端规则一致）
+var _waGEN=_waAll.filter(function(x){return x.name!=='馨予老师'&&x.name!=='齐得老师';});
 var _waIndex=0;var _waIndexTW=0;
 var phoneRules={
   '+60':{min:9,max:11,name:'马来西亚',hint:'9-11位'},
