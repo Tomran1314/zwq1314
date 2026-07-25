@@ -86,6 +86,8 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .card-course{font-size:0.74rem;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
 .card-course.c-ai{color:#C04808;background:#FFF3E0}
 .card-course.c-seed{color:#AD1457;background:#FCE4EC}
+.card-dup{font-size:0.74rem;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;color:#B45309;background:#FEF3C7;border:1px solid #FDE68A}
+.card-samename{font-size:0.74rem;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;color:#B91C1C;background:#FEE2E2;border:1px solid #FCA5A5}
 .card-info{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
 .info-row{display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text-mid)}
 .info-icon{font-size:0.85rem;width:18px;text-align:center;flex-shrink:0}
@@ -186,13 +188,14 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
       <button class="fbtn active" onclick="setFilter('all',this)">全部</button>
       <button class="fbtn" onclick="setCourseFilter('AI财道',this)" id="course-ai-btn">🚀 AI财道</button>
       <button class="fbtn" onclick="setCourseFilter('播种幸福',this)" id="course-seed-btn">🌸 播种幸福</button>
-      <button class="fbtn" onclick="setFilter('未联系',this)">未联系</button>
-      <button class="fbtn" onclick="setFilter('已联系',this)">已联系</button>
-      <button class="fbtn" onclick="setFilter('已成交',this)">已成交</button>
-      <button class="fbtn" onclick="setFilter('tag',this)" id="tag-filter-btn">🏷️ 标签筛选</button>
       <button class="fbtn" onclick="openCountryFilter()" id="country-filter-btn">🌏 国家筛选</button>
-      <button class="refresh-btn" onclick="loadData()">🔄 刷新</button>
       <button class="export-btn" onclick="openExport()">📊 导出</button>
+      <button class="fbtn" onclick="setFilter('未联系',this)" id="filter-new-btn">未联系</button>
+      <button class="fbtn" onclick="setFilter('已联系',this)" id="filter-contacted-btn">已联系</button>
+      <button class="fbtn" onclick="setFilter('已成交',this)" id="filter-converted-btn">已成交</button>
+      <button class="fbtn" onclick="setFilter('tag',this)" id="tag-filter-btn">🏷️ 标签筛选</button>
+      <button class="fbtn" onclick="toggleDupFilter(this)" id="dup-filter-btn">🔁 只看重复</button>
+      <button class="refresh-btn" onclick="loadData()">🔄 刷新</button>
     </div>
   </div>
 
@@ -259,6 +262,9 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
       <div class="export-opt"><input type="radio" name="exp" id="exp-contacted" value="status-已联系"/><label for="exp-contacted">🔵 仅已联系（<span id="exp-count-contacted">0</span> 人）</label></div>
       <div class="export-opt"><input type="radio" name="exp" id="exp-converted" value="status-已成交"/><label for="exp-converted">✅ 仅已成交（<span id="exp-count-converted">0</span> 人）</label></div>
     </div>
+    <div class="export-opt" style="margin-top:2px;padding-top:10px;border-top:1px solid var(--border)">
+      <input type="checkbox" id="exp-dedupe"/><label for="exp-dedupe">🔁 同号码只保留最新一条（去重导出）</label>
+    </div>
     <button class="export-go-btn" onclick="doExport()">⬇️ 下载 Excel</button>
     <div class="modal-acts" style="margin-top:10px">
       <button class="btn-cancel" onclick="closeExport()">取消</button>
@@ -275,7 +281,7 @@ const ACCOUNTS = {
   'qide':      {pass:'qd1234', name:'齐得老师',          staff:'齐得老师', role:'staff'},
   'sam':       {pass:'sam1234',name:'Sam老师',           staff:'Sam老师',  role:'staff'},
   'xiaohe':    {pass:'he1234', name:'小何老师',          staff:'小何老师', role:'staff'},
-  'dapeng':    {pass:'dp1234', name:'大鹏老师',          staff:'大鹏老师', role:'staff'},
+  'dapeng':    {pass:'dp1234', name:'董润知老师',        staff:'董润知老师', role:'staff'},
   'huangjuan': {pass:'hj1234', name:'黄娟老师',          staff:'黄娟老师', role:'staff'},
 };
 
@@ -287,7 +293,7 @@ const STAFF_GROUPS = {
   '齐得老师': ['齐得老师'],
   'Sam老师':  ['Sam老师'],
   '小何老师': ['小何老师','小何助教'],
-  '大鹏老师': ['大鹏老师'],
+  '董润知老师': ['董润知老师','大鹏老师'],
   '黄娟老师': ['黄娟老师'],
 };
 function staffMatch(rowStaff, groupName){
@@ -296,13 +302,12 @@ function staffMatch(rowStaff, groupName){
 }
 
 // ★ 统一脚本网址（播种幸福+AI财道共用一张表）：若重新部署 Apps Script 产生了新网址，替换下面这一行即可
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx70Cif8riB4YtG0tSDNMP8923aqQ6bohvI4Xgeu0N-bRcBCF2BO-8Ebs7AeOfVIps/exec';
-    const ADMIN_KEY = 'hc_zwq_2026_x7k9'; // 与 Apps Script 里的 ADMIN_KEY 一致
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9NfXv8JvykVcU1wALXWQq18wrsaEfkqoZJgWDVEMldATGN1CkOHmYn0uRKjOV3cw/exec';
 const COURSE_AI = 'AI财道';
 const COURSE_SEED = '播种幸福';
 const PAGE_SIZE = 15;
 
-const ALL_TAGS = ['🔥 高意向','💰 已付款','✅ 确定上课','🔕 未回复','📅 下一期','🤔 考虑中','❌ 不感兴趣','📞 需回电','🤝 汇播合伙人','💼 之前报名合伙人','🎓 训练营'];
+const ALL_TAGS = ['🔥 高意向','💰 已付款','✅ 确定上课','🔕 未回复','📅 下一期','🤔 考虑中','❌ 不感兴趣','📞 需回电','🤝 汇播合伙人','🎓 训练营'];
 
 let currentUser=null, allRows=[], filteredRows=[];
 let currentPage=1, currentFilter='all', activeTagFilter=null, activeCourseFilter=null;
@@ -392,7 +397,7 @@ async function loadData(){
   document.getElementById('err-bar').style.display='none';
   let rows=[];
   try{
-    const data=await fetch(SCRIPT_URL+'?action=list&key='+encodeURIComponent(ADMIN_KEY)).then(r=>r.json());
+    const data=await fetch(SCRIPT_URL).then(r=>r.json());
     if(Array.isArray(data)) rows=parseRows(data);
   }catch(e){}
 
@@ -405,6 +410,23 @@ async function loadData(){
   }
   // 新名单在最前：按提交时间从新到旧排列
   rows.sort((a,b)=>(b.ms-a.ms)||(b.idx-a.idx));
+
+  // 查重标记 1：同一个号码（尾9位）多次填写 → 标出"第几次填写"
+  function tail9(s){ s=String(s||'').replace(/[^\d]/g,''); return s.length>=9?s.slice(-9):s; }
+  const phoneGroups={};
+  rows.forEach(r=>{ const k=tail9(r.phone); (phoneGroups[k]=phoneGroups[k]||[]).push(r); });
+  Object.values(phoneGroups).forEach(group=>{
+    if(group.length<2) return;
+    // group 已经是新到旧顺序（rows 整体排过序），倒序编号：最早那条=第1次
+    const ordered=group.slice().reverse();
+    ordered.forEach((r,i)=>{ r.dupCount=ordered.length; r.dupIndex=i+1; });
+  });
+
+  // 查重标记 2：同名、不同号码 → 疑似重复，仅提示不自动合并
+  const nameGroups={};
+  rows.forEach(r=>{ if(!r.name) return; (nameGroups[r.name]=nameGroups[r.name]||new Set()).add(tail9(r.phone)); });
+  rows.forEach(r=>{ r.sameNameDiffPhone = r.name && nameGroups[r.name] && nameGroups[r.name].size>1; });
+
   allRows=rows;
   if(currentUser.role==='staff') allRows=allRows.filter(r=>staffMatch(r.staff, currentUser.staff));
   applyFilters();
@@ -419,6 +441,14 @@ function updateStats(){
   document.getElementById('st-contacted').textContent=c;
   document.getElementById('st-converted').textContent=cv;
 
+  // 跟进状态筛选按钮上显示数量（与顶部统计卡片同步）
+  const newBtn=document.getElementById('filter-new-btn');
+  const contactedBtn=document.getElementById('filter-contacted-btn');
+  const convertedBtn=document.getElementById('filter-converted-btn');
+  if(newBtn)newBtn.textContent='未联系 '+n;
+  if(contactedBtn)contactedBtn.textContent='已联系 '+c;
+  if(convertedBtn)convertedBtn.textContent='已成交 '+cv;
+
   // 课程筛选按钮上显示各课程人数
   let aiN=0,seedN=0;
   allRows.forEach(r=>{ if(r.course===COURSE_AI)aiN++; else seedN++; });
@@ -430,7 +460,7 @@ function updateStats(){
   // 管理员显示客服分类统计
   const staffStatsEl=document.getElementById('staff-stats');
   if(currentUser.role==='admin'){
-    const staffList=['志颖老师','越聪老师','馨予老师','齐得老师','Sam老师','小何老师','大鹏老师','黄娟老师'];
+    const staffList=['志颖老师','越聪老师','馨予老师','齐得老师','Sam老师','小何老师','董润知老师','黄娟老师'];
     const counts={};
     staffList.forEach(st=>counts[st]=0);
     allRows.forEach(r=>{ staffList.forEach(st=>{ if(staffMatch(r.staff,st)) counts[st]++; }); });
@@ -470,11 +500,13 @@ function countryFlag(c){
 
 let activeCountryFilter=null;
 function openCountryFilter(){
-  // 收集现有国家
-  const countries=[...new Set(allRows.map(r=>r.country).filter(Boolean))].sort();
+  // 收集现有国家并统计每个国家的人数
+  const counts={};
+  allRows.forEach(r=>{ if(r.country) counts[r.country]=(counts[r.country]||0)+1; });
+  const countries=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
   if(!countries.length){alert('暂无国家数据');return;}
   const wrap=document.getElementById('tag-filter-wrap');
-  wrap.innerHTML=countries.map(c=>`<span class="tag ${activeCountryFilter===c?'active':''}" onclick="selectTagFilter('${esc(c)}',this)">${countryFlag(c)}${c}</span>`).join('');
+  wrap.innerHTML=countries.map(c=>`<span class="tag ${activeCountryFilter===c?'active':''}" onclick="selectTagFilter('${esc(c)}',this)">${countryFlag(c)}${c} ${counts[c]}</span>`).join('');
   document.getElementById('note-name').textContent='';
   // reuse tag filter modal
   pendingTagFilter=activeCountryFilter;
@@ -486,7 +518,8 @@ function applyCountryFilter(){
   activeCountryFilter=pendingTagFilter;
   const btn=document.getElementById('country-filter-btn');
   if(activeCountryFilter){
-    btn.textContent=countryFlag(activeCountryFilter)+activeCountryFilter;
+    const cnt=allRows.filter(r=>r.country===activeCountryFilter).length;
+    btn.textContent=countryFlag(activeCountryFilter)+activeCountryFilter+' '+cnt;
     btn.classList.add('active');
   } else {
     btn.textContent='🌏 国家筛选';
@@ -541,9 +574,16 @@ function applyFilters(){
     const mt=!activeTagFilter||(tm[r.phone]||[]).includes(activeTagFilter);
     const mc=!activeCountryFilter||r.country===activeCountryFilter;
     const mcourse=!activeCourseFilter||r.course===activeCourseFilter;
-    return mq&&mf&&mt&&mc&&mcourse;
+    const md=!activeDupFilter||r.dupCount>1||r.sameNameDiffPhone;
+    return mq&&mf&&mt&&mc&&mcourse&&md;
   });
   currentPage=1;updateStats();renderCards();renderPagination();
+}
+let activeDupFilter=false;
+function toggleDupFilter(btn){
+  activeDupFilter=!activeDupFilter;
+  btn.classList.toggle('active',activeDupFilter);
+  applyFilters();
 }
 
 // RENDER CARDS
@@ -564,12 +604,14 @@ function renderCards(){
     const staffBadge=isAdmin&&r.staff?`<span class="card-staff">${esc(r.staff)}</span>`:'';
     const countryBadge=r.country?`<span class="card-country">${countryFlag(r.country)}${esc(r.country)}</span>`:'';
     const courseBadge=r.course?`<span class="card-course ${r.course===COURSE_AI?'c-ai':'c-seed'}">${r.course===COURSE_AI?'🚀':'🌸'} ${esc(r.course)}</span>`:'';
+    const dupBadge=r.dupCount>1?`<span class="card-dup" title="同号码提交了${r.dupCount}次">🔁 第${r.dupIndex}/${r.dupCount}次</span>`:'';
+    const sameNameBadge=r.sameNameDiffPhone?`<span class="card-samename" title="有其他号码用了相同姓名，请人工核实是否为同一人">⚠️ 同名不同号</span>`:'';
     const notePreview=note?`<div class="note-preview">💬 ${esc(note)}</div>`:'';
     const tagsHtml=ALL_TAGS.map(t=>`<span class="tag ${tags.includes(t)?'active':''}" onclick="toggleTag('${esc(r.phone)}','${esc(t)}')">${t}</span>`).join('');
     return `<div class="card ${scls}" id="card-${esc(r.phone.replace(/\+/g,'p'))}">
       <div class="card-top">
         <div style="flex:1;min-width:0">
-          <div class="name-row"><span class="card-name">${esc(r.name)}</span>${countryBadge}${staffBadge}${courseBadge}</div>
+          <div class="name-row"><span class="card-name">${esc(r.name)}</span>${countryBadge}${staffBadge}${courseBadge}${dupBadge}${sameNameBadge}</div>
           <div class="card-time">🕐 ${r.time}</div>
         </div>
       </div>
@@ -696,6 +738,13 @@ function doExport(){
   let rows=allRows;
   if(val==='filtered') rows=filteredRows;
   else if(val.startsWith('status-')) rows=allRows.filter(r=>(s[r.phone]||'未联系')===val.replace('status-',''));
+
+  // 去重导出：同号码（尾9位）只保留最新一条，rows 已是新到旧排序，取每组第一条即可
+  if(document.getElementById('exp-dedupe').checked){
+    function tail9(p){ p=String(p||'').replace(/[^\d]/g,''); return p.length>=9?p.slice(-9):p; }
+    const seen=new Set();
+    rows=rows.filter(r=>{ const k=tail9(r.phone); if(seen.has(k))return false; seen.add(k); return true; });
+  }
 
   const data=rows.map(r=>({
     '时间':r.time,
