@@ -1133,24 +1133,13 @@ function submitModal(){
   if(waBtn)waBtn.addEventListener('click',_waClick);
   if(waImg)waImg.addEventListener('click',_waClick);
   // 提交到 Apps Script：服务端做全局轮流分配 + 重复号码固定原客服，并写入名单
-  var _sid=Date.now().toString(36)+Math.random().toString(36).slice(2,8); // 本次提交唯一编号
-  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME,sid:_sid});
-  if(window._subPhone===fp){ // 同一部手机短时间内重复点提交（同一号码）：直接复用上次结果，不再发请求
-    if(window._subStaff){num=window._subStaff.num;staffName=window._subStaff.name;_setWA(num);}
-    _replied=true;if(waBtn)waBtn.style.opacity='';if(_clickWait)_go();
-  } else {
-  window._subPhone=fp;
+  var params=new URLSearchParams({name:n,phone:fp,email:em,line:l||'',country:cn,course:COURSE_NAME});
   fetch(GAS_URL+'?'+params.toString()).then(function(r){return r.json();}).then(function(res){
     if(res&&res.ok&&res.num){num=String(res.num);staffName=res.staff||staffName;_setWA(num);}
-    window._subStaff={num:num,name:staffName};
     _replied=true;
     if(waBtn)waBtn.style.opacity='';
     if(_clickWait)_go();
-  }).catch(function(){
-    // fetch失败（网络受限/内置浏览器拦截）→ 图片请求携带同一sid补发一次，服务端据此去重，不会重复写入
-    try{new Image().src=GAS_URL+'?'+params.toString();}catch(e){}
-    _replied=true;if(waBtn)waBtn.style.opacity='';if(_clickWait)_go();
-  });}
+  }).catch(function(){_replied=true;if(waBtn)waBtn.style.opacity='';if(_clickWait)_go();});
   if(typeof fbq==='function')fbq('track','CompleteRegistration');
   if(typeof gtag==='function'){gtag('event','generate_lead',{'send_to':'AW-16523264778'});}
   // 倒计时结束后：必须等服务端分配结果回来才跳转（最多再等8秒），
@@ -1172,6 +1161,7 @@ function submitModal(){
     }
   },1000);
 }
+// Countdown — 场次表：当前场次开播后自动倒数下一期，并同步更新页面日期文案
 // Countdown — 课程时间表：与台湾/香港版同步（皆为吉隆坡时间 UTC+8；月份从0起算，6=7月）
 // 阶段1：现在 → 7/25 晚上10:00　倒数 7/25 19:00 全球直播；弹窗营期已提前显示下一期 7月28-31日
 // 阶段2：7/25 22:00 → 7/28 晚上11:00　倒数 7/28 19:00（7月28-31日 4天营）
