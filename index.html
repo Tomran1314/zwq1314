@@ -534,7 +534,7 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <span class="cd-sep">:</span>
       <div class="cd-box"><span class="cd-n" id="cd-secs">00</span><span class="cd-u">秒</span></div>
     </div>
-    <div class="cd-sub">📅 7月21-24日 · 每晚 19:00 开课</div>
+    <div class="cd-sub" id="cd-sub-txt">📅 7月25日（周六）· 晚上 19:00 全球直播大课</div>
     <div class="info-pills">
       <div class="ipill"><span class="iv">线上直播</span><span class="il">授课形式</span></div>
       <div class="ipill"><span class="iv">19:00</span><span class="il">每晚开播</span></div>
@@ -959,8 +959,8 @@ src="https://www.facebook.com/tr?id=2284369285700586&ev=PageView&noscript=1"
       <div class="s-title">报名成功！</div>
       <div class="s-sub">你的【AI财道陪跑4天营】席位已锁定 🌱</div>
       <div class="s-info-box">
-        <div class="s-info-row">📅&nbsp; 7月28-31日 每晚19:00开课（吉隆坡时间）</div>
-        <div class="s-info-row">🌏&nbsp; 8月1日（周六）晚上19:00 全球直播大课</div>
+        <div class="s-info-row">📅&nbsp; <span id="s-camp-date">7月28-31日</span> 每晚19:00开课（吉隆坡时间）</div>
+        <div class="s-info-row">🌏&nbsp; <span id="s-live-date">8月1日（周六）</span>晚上19:00 全球直播大课</div>
         <div class="s-info-row">💻&nbsp; 线上直播</div>
         <div class="s-info-row">❤️&nbsp; 特殊情况：可申请直播回放</div>
       </div>
@@ -1031,11 +1031,12 @@ var _waAll=[
   {name:'越聪老师',num:'601169479857'},
   {name:'馨予老师',num:'60139111413'},
   {name:'齐得老师',num:'601139410137'},
+  {name:'程章凯老师',num:'60126122651'},
   {name:'Sam老师',num:'601170225883'}
   // {name:'小何老师',num:'60145461319'}, // ← 已暂停接新名单
   // {name:'董润知老师',num:'60173134319'} // ← 已暂停接新名单
 ];
-var _waTW=_waAll.slice(0,4); // 台湾池：志颖/越聪/馨予/齐得 4人轮流
+var _waTW=_waAll.slice(0,5); // 台湾池：志颖/越聪/馨予/齐得/程章凯 5人轮流
 // 非台湾名单兜底池：排除只接台湾的馨予、齐得老师（与服务端规则一致）
 var _waGEN=_waAll.filter(function(x){return x.name!=='馨予老师'&&x.name!=='齐得老师';});
 var _waIndex=0;var _waIndexTW=0;
@@ -1161,31 +1162,37 @@ function submitModal(){
   },1000);
 }
 // Countdown — 场次表：当前场次开播后自动倒数下一期，并同步更新页面日期文案
-var SCHEDULE = [
-  // end = 该场次在页面上保留到什么时候（7/21 23:00 MYT = UTC 15:00），过后自动切下一场
-  // 以后要加新场次，照格式再加一行即可
-  { t: Date.UTC(2026, 6, 21, 11, 0, 0), end: Date.UTC(2026, 6, 21, 15, 0, 0), sub: '📅 7月21-24日 · 每晚 19:00 开课' },
-  { t: Date.UTC(2026, 6, 25, 11, 0, 0), sub: '📅 7月25日（周六）· 晚上 19:00 全球直播大课' }
+// Countdown — 课程时间表：与台湾/香港版同步（皆为吉隆坡时间 UTC+8；月份从0起算，6=7月）
+// 阶段1：现在 → 7/25 晚上10:00　倒数 7/25 19:00 全球直播；弹窗营期已提前显示下一期 7月28-31日
+// 阶段2：7/25 22:00 → 7/28 晚上11:00　倒数 7/28 19:00（7月28-31日 4天营）
+// 阶段3：7/28 23:00 之后　倒数 8/1（周六）19:00 全球直播
+var CD_SCHEDULE = [
+  { until: Date.UTC(2026,6,25,14,0,0), target: Date.UTC(2026,6,25,11,0,0), label: '📅 7月25日（周六）· 晚上 19:00 全球直播大课', live: '7月25日（周六）', camp: '7月28-31日' },
+  { until: Date.UTC(2026,6,28,15,0,0), target: Date.UTC(2026,6,28,11,0,0), label: '📅 7月28-31日 · 每晚 19:00 开课',        live: '8月1日（周六）', camp: '7月28-31日' },
+  { until: Date.UTC(2026,7,9,16,0,0),  target: Date.UTC(2026,7,1,11,0,0),  label: '📅 8月1日（周六）· 晚上 19:00 全球直播大课', live: '8月1日（周六）', camp: '7月28-31日' }
 ];
+function _cdStage(){
+  var now = Date.now();
+  for(var i=0;i<CD_SCHEDULE.length;i++){ if(now < CD_SCHEDULE[i].until) return CD_SCHEDULE[i]; }
+  return CD_SCHEDULE[CD_SCHEDULE.length-1];
+}
 var LIVE_WINDOW_MS = 3 * 3600 * 1000; // 开播后3小时内显示"直播进行中"
 function pad(n){return n<10?'0'+n:''+n;}
 function tick(){
+  var stage = _cdStage();
   var now = Date.now();
-  // 选定当前目标：第一个还没开播的场次；全播完则停在最后一场
-  var cur = SCHEDULE[SCHEDULE.length-1];
-  for (var i=0;i<SCHEDULE.length;i++){ if (now < (SCHEDULE[i].end || SCHEDULE[i].t)){ cur = SCHEDULE[i]; break; } }
-  var diff = Math.max(0, Math.floor((cur.t - now) / 1000));
-  function s(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+  var diff = Math.max(0, Math.floor((stage.target - now) / 1000));
+  function s(id,v){var e=document.getElementById(id);if(e&&e.textContent!==v)e.textContent=v;}
   s('cd-days',  pad(Math.floor(diff / 86400)));
   s('cd-hours', pad(Math.floor((diff % 86400) / 3600)));
   s('cd-mins',  pad(Math.floor((diff % 3600) / 60)));
   s('cd-secs',  pad(diff % 60));
-  // 同步日期文案（倒计时下方 + 报名成功信息栏）
-  var subEl = document.querySelector('.cd-sub');
-  if (subEl && subEl.textContent !== cur.sub) subEl.textContent = cur.sub;
-  // 任一场次开播后3小时内显示"直播进行中"，之后自动恢复倒数下一期
-  var live = false;
-  for (var j=0;j<SCHEDULE.length;j++){ if (now >= SCHEDULE[j].t && now - SCHEDULE[j].t < LIVE_WINDOW_MS){ live = true; break; } }
+  // 同步日期文案（顶部倒计时 + 报名成功信息栏两处独立日期，自动随阶段切换）
+  s('cd-sub-txt', stage.label);
+  s('s-live-date', stage.live);
+  s('s-camp-date', stage.camp);
+  // 开播后3小时内显示"直播进行中"
+  var live = (now >= stage.target && now - stage.target < LIVE_WINDOW_MS);
   var liveEl = document.getElementById('cd-live-badge');
   if(liveEl) liveEl.style.display = live ? 'flex' : 'none';
   var rowEl = document.getElementById('cd-row');
