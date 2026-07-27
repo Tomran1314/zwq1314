@@ -134,9 +134,6 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .pinfo{font-size:0.78rem;color:var(--text-soft)}
 
 .err-bar{background:#FFF3F3;border:1px solid #FFCDD2;border-radius:12px;padding:12px 16px;color:#C62828;font-size:0.83rem;margin:12px;display:none}
-.migrate-bar{background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:12px 16px;color:#8D6E00;font-size:0.83rem;margin:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.migrate-bar button{background:#F5A623;color:#fff;border:none;border-radius:20px;padding:6px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap}
-.migrate-dismiss{cursor:pointer;color:#8D6E00;text-decoration:underline;font-size:0.78rem;margin-left:auto}
 
 /* MODALS */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(45,26,31,0.5);z-index:300;align-items:flex-end;justify-content:center}
@@ -226,11 +223,6 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
   </div>
 
   <div class="err-bar" id="err-bar"></div>
-  <div class="migrate-bar" id="migrate-bar" style="display:none">
-    <span>📤 检测到本机还有 <b id="migrate-count">0</b> 位客户的旧标记（升级共享同步前打的），同步后所有人都能看到</span>
-    <button onclick="migrateLocalMeta()">立即同步</button>
-    <span class="migrate-dismiss" onclick="dismissMigrateBar()">暂不</span>
-  </div>
   <div class="cards" id="cards-wrap"></div>
   <div class="pagination" id="pagination"></div>
 </div>
@@ -343,25 +335,6 @@ const PAGE_SIZE = 15;
 const ALL_TAGS = ['🔥 高意向','💰 已付款','✅ 确定上课','🔕 未回复','📅 下一期','🤔 考虑中','❌ 不感兴趣','📞 需回电','🤝 汇播合伙人','🎓 训练营'];
 
 let currentUser=null, allRows=[], filteredRows=[];
-// 共享跟进数据（状态/标签/备注）：key=电话尾9位，来自 Google Sheet 的 CRM_META 表，
-// 所有登录者读到的是同一份，不再各自存浏览器本地
-let metaMap={};
-function metaKey(phone){ return String(phone||'').replace(/[^\d]/g,'').slice(-9); }
-function buildMetaMaps(rows){
-  const s={},tm={},nm={};
-  (rows||allRows).forEach(r=>{
-    const mk=metaMap[metaKey(r.phone)]||{};
-    s[r.phone]=mk.status||'未联系';
-    tm[r.phone]=mk.tags||[];
-    nm[r.phone]=mk.notes||'';
-  });
-  return {status:s,tags:tm,notes:nm};
-}
-// 把状态/标签/备注的改动写回共享表，让所有人都能看到
-function pushMeta(phone,field,value){
-  const url=SCRIPT_URL+'?action=setmeta&phone='+encodeURIComponent(phone)+'&field='+field+'&value='+encodeURIComponent(value)+'&by='+encodeURIComponent(currentUser?currentUser.name:'');
-  fetch(url).catch(()=>{ setTimeout(()=>{ fetch(url).catch(()=>{}); },3000); });
-}
 let currentPage=1, currentFilter='all', activeTagFilter=null, activeCourseFilter=null;
 let activePhone=null, activeWAPhone=null;
 
@@ -376,52 +349,6 @@ function enterApp(u, acc){
   document.getElementById('app-screen').style.display='block';
   document.getElementById('hdr-user').textContent=currentUser.name;
   loadData();
-  checkLegacyMeta();
-}
-// 检测本机浏览器里是否还有升级共享同步前的旧标记（存在 localStorage 里），有就提示同步
-function checkLegacyMeta(){
-  const s=gm('status'),tm=gm('tags'),nm=gm('notes');
-  const phones=new Set([...Object.keys(s),...Object.keys(tm),...Object.keys(nm)]);
-  const bar=document.getElementById('migrate-bar');
-  if(phones.size && !localStorage.getItem(sk('migrated'))){
-    document.getElementById('migrate-count').textContent=phones.size;
-    bar.style.display='flex';
-  } else {
-    bar.style.display='none';
-  }
-}
-function dismissMigrateBar(){
-  document.getElementById('migrate-bar').style.display='none';
-}
-// 把本机旧标记逐条推送到共享表（CRM_META）。
-// 先在本地立即生效（画面不用等网络），推送到服务器则排队节流，避免大量请求同时冲垮 Apps Script
-function migrateLocalMeta(){
-  const s=gm('status'),tm=gm('tags'),nm=gm('notes');
-  const phones=new Set([...Object.keys(s),...Object.keys(tm),...Object.keys(nm)]);
-  if(!phones.size){ alert('没有发现本机的旧标记数据'); return; }
-  const queue=[];
-  phones.forEach(phone=>{
-    const key=metaKey(phone);
-    const cur=metaMap[key]||{status:'未联系',tags:[],notes:''};
-    const next={status:cur.status,tags:cur.tags,notes:cur.notes};
-    if(s[phone] && s[phone]!=='未联系'){ next.status=s[phone]; queue.push(['status',phone,s[phone]]); }
-    if(tm[phone] && tm[phone].length){ next.tags=tm[phone]; queue.push(['tags',phone,JSON.stringify(tm[phone])]); }
-    if(nm[phone]){ next.notes=nm[phone]; queue.push(['notes',phone,nm[phone]]); }
-    metaMap[key]=next; // 立即在本地生效，不用等服务器写完
-  });
-  // 立即刷新画面——用本地数据，老师马上就能看到，不会有"清零"的空窗期
-  updateStats();applyFilters();
-  localStorage.setItem(sk('migrated'),'1');
-  document.getElementById('migrate-bar').style.display='none';
-  alert('已同步 '+phones.size+' 位客户的旧标记，画面已立即更新。\n正在后台把数据慢慢写入共享表（约每秒1条，请耐心等待，不要关闭页面），写完后其他人也能看到。');
-  // 排队依次推送，每条间隔 350ms，温和写入不给 Apps Script 造成压力
-  let i=0;
-  (function pushNext(){
-    if(i>=queue.length) return;
-    const [field,phone,value]=queue[i++];
-    pushMeta(phone,field,value);
-    setTimeout(pushNext,350);
-  })();
 }
 function doLogin(){
   const u=document.getElementById('lu').value.trim().toLowerCase();
@@ -497,33 +424,8 @@ async function loadData(silent){
   }
   let rows=[];
   try{
-    const resp=await fetch(SCRIPT_URL).then(r=>r.json());
-    let dataArr=null, metaRows=[];
-    if(Array.isArray(resp)){ dataArr=resp; } // 兼容旧版脚本（无共享跟进数据）
-    else if(resp && Array.isArray(resp.data)){ dataArr=resp.data; metaRows=resp.meta||[]; }
-    if(dataArr) rows=parseRows(dataArr);
-    // 用服务器返回的共享跟进数据合并进 metaMap（跳过表头行）
-    // 合并原则：服务器该字段有实际内容才采用（代表别的设备/别人做的更新）；
-    // 服务器该字段是空的但本地已有内容，保留本地——避免"正在写入中"的半成品数据把本地画面冲成空白
-    const newMeta={};
-    metaRows.slice(1).forEach(row=>{
-      const key=String(row[0]||'');
-      if(!key) return;
-      let tags=[];
-      try{ tags=JSON.parse(row[2]||'[]'); }catch(e){}
-      newMeta[key]={ status:row[1]||'', tags:tags, notes:row[3]||'' };
-    });
-    const merged={};
-    Object.keys(metaMap).forEach(k=>{ merged[k]=metaMap[k]; });
-    Object.keys(newMeta).forEach(k=>{
-      const nv=newMeta[k], ov=merged[k];
-      merged[k]=ov?{
-        status: nv.status || ov.status,
-        tags: (nv.tags&&nv.tags.length) ? nv.tags : ov.tags,
-        notes: nv.notes || ov.notes
-      }:nv;
-    });
-    metaMap=merged;
+    const data=await fetch(SCRIPT_URL).then(r=>r.json());
+    if(Array.isArray(data)) rows=parseRows(data);
   }catch(e){}
 
   if(!rows.length){
@@ -652,7 +554,7 @@ document.addEventListener('click',function(e){
 
 // STATS
 function updateStats(){
-  const s=buildMetaMaps().status;let n=0,c=0,cv=0;
+  const s=gm('status');let n=0,c=0,cv=0;
   allRows.forEach(r=>{const st=s[r.phone]||'未联系';if(st==='未联系')n++;else if(st==='已联系')c++;else cv++;});
   document.getElementById('st-total').textContent=allRows.length;
   document.getElementById('st-new').textContent=n;
@@ -784,7 +686,7 @@ function setCourseFilter(course,btn){
 }
 function applyFilters(){
   const q=document.getElementById('search-inp').value.toLowerCase();
-  const {status:s,tags:tm}=buildMetaMaps();
+  const s=gm('status');const tm=gm('tags');
   filteredRows=allRows.filter(r=>{
     const mq=!q||[r.name,r.phone,r.email,r.staff,r.line,r.course,...(tm[r.phone]||[])].some(v=>String(v).toLowerCase().includes(q));
     const st=s[r.phone]||'未联系';
@@ -808,7 +710,7 @@ function toggleDupFilter(btn){
 function renderCards(){
   const wrap=document.getElementById('cards-wrap');
   if(!filteredRows.length){wrap.innerHTML=`<div class="empty"><div class="icon">💰</div><p>暂无匹配客户</p></div>`;return;}
-  const {status:s,notes:nm,tags:tm}=buildMetaMaps();
+  const s=gm('status');const nm=gm('notes');const tm=gm('tags');
   const start=(currentPage-1)*PAGE_SIZE;
   const slice=filteredRows.slice(start,start+PAGE_SIZE);
   const isAdmin=currentUser.role==='admin';
@@ -857,27 +759,22 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 // STATUS
 function setStatus(phone,val){
-  const key=metaKey(phone);
-  metaMap[key]=Object.assign({status:'未联系',tags:[],notes:''},metaMap[key],{status:val});
-  updateStats();
+  const s=gm('status');s[phone]=val;sm('status',s);updateStats();
   // update card border color
   const sel=status=>{return status==='未联系'?'s-new':status==='已联系'?'s-contacted':'s-converted';};
   const card=document.getElementById('card-'+phone.replace(/\+/g,'p'));
   if(card){card.className=`card ${sel(val)}`;}
-  pushMeta(phone,'status',val);
 }
 
 // TAGS
 function toggleTag(phone,tag){
-  const key=metaKey(phone);
-  const cur=metaMap[key]||{status:'未联系',tags:[],notes:''};
-  const tags=(cur.tags||[]).slice();
-  const idx=tags.indexOf(tag);
-  if(idx>-1) tags.splice(idx,1); else tags.push(tag);
-  metaMap[key]=Object.assign({},cur,{tags});
+  const tm=gm('tags');
+  if(!tm[phone]) tm[phone]=[];
+  const idx=tm[phone].indexOf(tag);
+  if(idx>-1) tm[phone].splice(idx,1); else tm[phone].push(tag);
+  sm('tags',tm);
   // update tag UI inline
   renderCards();
-  pushMeta(phone,'tags',JSON.stringify(tags));
 }
 
 // TAG FILTER MODAL
@@ -930,23 +827,21 @@ function sendWA(){
 function openNote(phone,name){
   activePhone=phone;
   document.getElementById('note-name').textContent=name;
-  document.getElementById('note-ta').value=(metaMap[metaKey(phone)]||{}).notes||'';
+  document.getElementById('note-ta').value=gm('notes')[phone]||'';
   document.getElementById('note-modal').classList.add('show');
 }
 function closeNote(){document.getElementById('note-modal').classList.remove('show');activePhone=null;}
 function saveNote(){
   if(!activePhone) return;
   const val=document.getElementById('note-ta').value.trim();
-  const key=metaKey(activePhone);
-  const cur=metaMap[key]||{status:'未联系',tags:[],notes:''};
-  metaMap[key]=Object.assign({},cur,{notes:val});
-  closeNote();renderCards();
-  pushMeta(activePhone,'notes',val);
+  const nm=gm('notes');
+  if(val) nm[activePhone]=val; else delete nm[activePhone];
+  sm('notes',nm);closeNote();renderCards();
 }
 
 // EXPORT MODAL
 function openExport(){
-  const s=buildMetaMaps().status;
+  const s=gm('status');
   let n=0,c=0,cv=0;
   allRows.forEach(r=>{const st=s[r.phone]||'未联系';if(st==='未联系')n++;else if(st==='已联系')c++;else cv++;});
   document.getElementById('exp-count-all').textContent=allRows.length;
@@ -959,7 +854,7 @@ function openExport(){
 function closeExport(){document.getElementById('export-modal').classList.remove('show');}
 function doExport(){
   const val=document.querySelector('input[name=exp]:checked').value;
-  const {status:s,notes:nm,tags:tm}=buildMetaMaps();
+  const s=gm('status');const nm=gm('notes');const tm=gm('tags');
   let rows=allRows;
   if(val==='filtered') rows=filteredRows;
   else if(val.startsWith('status-')) rows=allRows.filter(r=>(s[r.phone]||'未联系')===val.replace('status-',''));
