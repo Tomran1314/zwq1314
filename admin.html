@@ -393,21 +393,35 @@ function checkLegacyMeta(){
 function dismissMigrateBar(){
   document.getElementById('migrate-bar').style.display='none';
 }
-// 把本机旧标记逐条推送到共享表（CRM_META），推送完标记为"已迁移"，不再重复提示
+// 把本机旧标记逐条推送到共享表（CRM_META）。
+// 先在本地立即生效（画面不用等网络），推送到服务器则排队节流，避免大量请求同时冲垮 Apps Script
 function migrateLocalMeta(){
   const s=gm('status'),tm=gm('tags'),nm=gm('notes');
   const phones=new Set([...Object.keys(s),...Object.keys(tm),...Object.keys(nm)]);
   if(!phones.size){ alert('没有发现本机的旧标记数据'); return; }
-  let pushed=0;
+  const queue=[];
   phones.forEach(phone=>{
-    if(s[phone] && s[phone]!=='未联系'){ pushMeta(phone,'status',s[phone]); pushed++; }
-    if(tm[phone] && tm[phone].length){ pushMeta(phone,'tags',JSON.stringify(tm[phone])); }
-    if(nm[phone]){ pushMeta(phone,'notes',nm[phone]); }
+    const key=metaKey(phone);
+    const cur=metaMap[key]||{status:'未联系',tags:[],notes:''};
+    const next={status:cur.status,tags:cur.tags,notes:cur.notes};
+    if(s[phone] && s[phone]!=='未联系'){ next.status=s[phone]; queue.push(['status',phone,s[phone]]); }
+    if(tm[phone] && tm[phone].length){ next.tags=tm[phone]; queue.push(['tags',phone,JSON.stringify(tm[phone])]); }
+    if(nm[phone]){ next.notes=nm[phone]; queue.push(['notes',phone,nm[phone]]); }
+    metaMap[key]=next; // 立即在本地生效，不用等服务器写完
   });
+  // 立即刷新画面——用本地数据，老师马上就能看到，不会有"清零"的空窗期
+  updateStats();applyFilters();
   localStorage.setItem(sk('migrated'),'1');
   document.getElementById('migrate-bar').style.display='none';
-  alert('已同步 '+phones.size+' 位客户的旧标记到共享表，稍后点「🔄刷新」即可看到最新状态。');
-  setTimeout(()=>loadData(),1500);
+  alert('已同步 '+phones.size+' 位客户的旧标记，画面已立即更新。\n正在后台把数据慢慢写入共享表（约每秒1条，请耐心等待，不要关闭页面），写完后其他人也能看到。');
+  // 排队依次推送，每条间隔 350ms，温和写入不给 Apps Script 造成压力
+  let i=0;
+  (function pushNext(){
+    if(i>=queue.length) return;
+    const [field,phone,value]=queue[i++];
+    pushMeta(phone,field,value);
+    setTimeout(pushNext,350);
+  })();
 }
 function doLogin(){
   const u=document.getElementById('lu').value.trim().toLowerCase();
@@ -488,7 +502,9 @@ async function loadData(silent){
     if(Array.isArray(resp)){ dataArr=resp; } // 兼容旧版脚本（无共享跟进数据）
     else if(resp && Array.isArray(resp.data)){ dataArr=resp.data; metaRows=resp.meta||[]; }
     if(dataArr) rows=parseRows(dataArr);
-    // 用服务器返回的共享跟进数据覆盖 metaMap（跳过表头行）
+    // 用服务器返回的共享跟进数据合并进 metaMap（跳过表头行）
+    // 合并原则：服务器该字段有实际内容才采用（代表别的设备/别人做的更新）；
+    // 服务器该字段是空的但本地已有内容，保留本地——避免"正在写入中"的半成品数据把本地画面冲成空白
     const newMeta={};
     metaRows.slice(1).forEach(row=>{
       const key=String(row[0]||'');
@@ -497,7 +513,17 @@ async function loadData(silent){
       try{ tags=JSON.parse(row[2]||'[]'); }catch(e){}
       newMeta[key]={ status:row[1]||'', tags:tags, notes:row[3]||'' };
     });
-    metaMap=newMeta;
+    const merged={};
+    Object.keys(metaMap).forEach(k=>{ merged[k]=metaMap[k]; });
+    Object.keys(newMeta).forEach(k=>{
+      const nv=newMeta[k], ov=merged[k];
+      merged[k]=ov?{
+        status: nv.status || ov.status,
+        tags: (nv.tags&&nv.tags.length) ? nv.tags : ov.tags,
+        notes: nv.notes || ov.notes
+      }:nv;
+    });
+    metaMap=merged;
   }catch(e){}
 
   if(!rows.length){
