@@ -417,9 +417,11 @@ function parseRows(data){
   }).filter(r=>r.name||r.phone);
 }
 
-async function loadData(){
-  document.getElementById('cards-wrap').innerHTML=`<div class="empty"><div class="icon">⏳</div><p>正在加载数据…</p></div>`;
-  document.getElementById('err-bar').style.display='none';
+async function loadData(silent){
+  if(!silent){
+    document.getElementById('cards-wrap').innerHTML=`<div class="empty"><div class="icon">⏳</div><p>正在加载数据…</p></div>`;
+    document.getElementById('err-bar').style.display='none';
+  }
   let rows=[];
   try{
     const data=await fetch(SCRIPT_URL).then(r=>r.json());
@@ -427,6 +429,7 @@ async function loadData(){
   }catch(e){}
 
   if(!rows.length){
+    if(silent) return; // 静默轮询失败不打扰画面，下次再试
     const eb=document.getElementById('err-bar');
     eb.style.display='block';
     eb.textContent='⚠️ 无法加载数据，请确认 Apps Script 已部署为"任何人可访问"，然后点击刷新。';
@@ -452,9 +455,12 @@ async function loadData(){
   rows.forEach(r=>{ if(!r.name) return; (nameGroups[r.name]=nameGroups[r.name]||new Set()).add(tail9(r.phone)); });
   rows.forEach(r=>{ r.sameNameDiffPhone = r.name && nameGroups[r.name] && nameGroups[r.name].size>1; });
 
-  allRows=rows;
-  if(currentUser.role==='staff') allRows=allRows.filter(r=>staffMatch(r.staff, currentUser.staff));
-  checkNewLeads(allRows);
+  let scoped=rows;
+  if(currentUser.role==='staff') scoped=scoped.filter(r=>staffMatch(r.staff, currentUser.staff));
+  checkNewLeads(scoped);
+
+  if(silent) return; // 静默轮询只用于检查新学员，不重绘、不打断正在查看的名单
+  allRows=scoped;
   applyFilters();
 }
 
@@ -529,11 +535,14 @@ function closeNotifyPanel(){
 }
 function jumpToLead(phone){
   closeNotifyPanel();
-  document.getElementById('search-inp').value=phone;
-  applyFilters();
+  loadData().then(()=>{
+    document.getElementById('search-inp').value=phone;
+    applyFilters();
+  });
 }
-// 每30秒静默轮询一次，后台开着即可及时收到新学员提醒
-setInterval(()=>{ if(currentUser) loadData(); }, 30000);
+// 每2分钟静默检查一次是否有新学员（不刷新画面、不打断正在查看的名单，
+// 只有真的有新学员时才提醒；要看到最新名单，手动点「🔄刷新」即可）
+setInterval(()=>{ if(currentUser) loadData(true); }, 120000);
 document.addEventListener('click',function(e){
   const panel=document.getElementById('notify-panel');
   const btn=document.getElementById('notify-btn');
