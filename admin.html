@@ -335,6 +335,25 @@ const PAGE_SIZE = 15;
 const ALL_TAGS = ['🔥 高意向','💰 已付款','✅ 确定上课','🔕 未回复','📅 下一期','🤔 考虑中','❌ 不感兴趣','📞 需回电','🤝 汇播合伙人','🎓 训练营'];
 
 let currentUser=null, allRows=[], filteredRows=[];
+// 共享跟进数据（状态/标签/备注）：key=电话尾9位，来自 Google Sheet 的 CRM_META 表，
+// 所有登录者读到的是同一份，不再各自存浏览器本地
+let metaMap={};
+function metaKey(phone){ return String(phone||'').replace(/[^\d]/g,'').slice(-9); }
+function buildMetaMaps(rows){
+  const s={},tm={},nm={};
+  (rows||allRows).forEach(r=>{
+    const mk=metaMap[metaKey(r.phone)]||{};
+    s[r.phone]=mk.status||'未联系';
+    tm[r.phone]=mk.tags||[];
+    nm[r.phone]=mk.notes||'';
+  });
+  return {status:s,tags:tm,notes:nm};
+}
+// 把状态/标签/备注的改动写回共享表，让所有人都能看到
+function pushMeta(phone,field,value){
+  const url=SCRIPT_URL+'?action=setmeta&phone='+encodeURIComponent(phone)+'&field='+field+'&value='+encodeURIComponent(value)+'&by='+encodeURIComponent(currentUser?currentUser.name:'');
+  fetch(url).catch(()=>{ setTimeout(()=>{ fetch(url).catch(()=>{}); },3000); });
+}
 let currentPage=1, currentFilter='all', activeTagFilter=null, activeCourseFilter=null;
 let activePhone=null, activeWAPhone=null;
 
@@ -424,8 +443,21 @@ async function loadData(silent){
   }
   let rows=[];
   try{
-    const data=await fetch(SCRIPT_URL).then(r=>r.json());
-    if(Array.isArray(data)) rows=parseRows(data);
+    const resp=await fetch(SCRIPT_URL).then(r=>r.json());
+    let dataArr=null, metaRows=[];
+    if(Array.isArray(resp)){ dataArr=resp; } // 兼容旧版脚本（无共享跟进数据）
+    else if(resp && Array.isArray(resp.data)){ dataArr=resp.data; metaRows=resp.meta||[]; }
+    if(dataArr) rows=parseRows(dataArr);
+    // 用服务器返回的共享跟进数据覆盖 metaMap（跳过表头行）
+    const newMeta={};
+    metaRows.slice(1).forEach(row=>{
+      const key=String(row[0]||'');
+      if(!key) return;
+      let tags=[];
+      try{ tags=JSON.parse(row[2]||'[]'); }catch(e){}
+      newMeta[key]={ status:row[1]||'', tags:tags, notes:row[3]||'' };
+    });
+    metaMap=newMeta;
   }catch(e){}
 
   if(!rows.length){
@@ -554,7 +586,7 @@ document.addEventListener('click',function(e){
 
 // STATS
 function updateStats(){
-  const s=gm('status');let n=0,c=0,cv=0;
+  const s=buildMetaMaps().status;let n=0,c=0,cv=0;
   allRows.forEach(r=>{const st=s[r.phone]||'未联系';if(st==='未联系')n++;else if(st==='已联系')c++;else cv++;});
   document.getElementById('st-total').textContent=allRows.length;
   document.getElementById('st-new').textContent=n;
@@ -686,7 +718,7 @@ function setCourseFilter(course,btn){
 }
 function applyFilters(){
   const q=document.getElementById('search-inp').value.toLowerCase();
-  const s=gm('status');const tm=gm('tags');
+  const {status:s,tags:tm}=buildMetaMaps();
   filteredRows=allRows.filter(r=>{
     const mq=!q||[r.name,r.phone,r.email,r.staff,r.line,r.course,...(tm[r.phone]||[])].some(v=>String(v).toLowerCase().includes(q));
     const st=s[r.phone]||'未联系';
@@ -710,7 +742,7 @@ function toggleDupFilter(btn){
 function renderCards(){
   const wrap=document.getElementById('cards-wrap');
   if(!filteredRows.length){wrap.innerHTML=`<div class="empty"><div class="icon">💰</div><p>暂无匹配客户</p></div>`;return;}
-  const s=gm('status');const nm=gm('notes');const tm=gm('tags');
+  const {status:s,notes:nm,tags:tm}=buildMetaMaps();
   const start=(currentPage-1)*PAGE_SIZE;
   const slice=filteredRows.slice(start,start+PAGE_SIZE);
   const isAdmin=currentUser.role==='admin';
@@ -759,22 +791,27 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 // STATUS
 function setStatus(phone,val){
-  const s=gm('status');s[phone]=val;sm('status',s);updateStats();
+  const key=metaKey(phone);
+  metaMap[key]=Object.assign({status:'未联系',tags:[],notes:''},metaMap[key],{status:val});
+  updateStats();
   // update card border color
   const sel=status=>{return status==='未联系'?'s-new':status==='已联系'?'s-contacted':'s-converted';};
   const card=document.getElementById('card-'+phone.replace(/\+/g,'p'));
   if(card){card.className=`card ${sel(val)}`;}
+  pushMeta(phone,'status',val);
 }
 
 // TAGS
 function toggleTag(phone,tag){
-  const tm=gm('tags');
-  if(!tm[phone]) tm[phone]=[];
-  const idx=tm[phone].indexOf(tag);
-  if(idx>-1) tm[phone].splice(idx,1); else tm[phone].push(tag);
-  sm('tags',tm);
+  const key=metaKey(phone);
+  const cur=metaMap[key]||{status:'未联系',tags:[],notes:''};
+  const tags=(cur.tags||[]).slice();
+  const idx=tags.indexOf(tag);
+  if(idx>-1) tags.splice(idx,1); else tags.push(tag);
+  metaMap[key]=Object.assign({},cur,{tags});
   // update tag UI inline
   renderCards();
+  pushMeta(phone,'tags',JSON.stringify(tags));
 }
 
 // TAG FILTER MODAL
@@ -827,21 +864,23 @@ function sendWA(){
 function openNote(phone,name){
   activePhone=phone;
   document.getElementById('note-name').textContent=name;
-  document.getElementById('note-ta').value=gm('notes')[phone]||'';
+  document.getElementById('note-ta').value=(metaMap[metaKey(phone)]||{}).notes||'';
   document.getElementById('note-modal').classList.add('show');
 }
 function closeNote(){document.getElementById('note-modal').classList.remove('show');activePhone=null;}
 function saveNote(){
   if(!activePhone) return;
   const val=document.getElementById('note-ta').value.trim();
-  const nm=gm('notes');
-  if(val) nm[activePhone]=val; else delete nm[activePhone];
-  sm('notes',nm);closeNote();renderCards();
+  const key=metaKey(activePhone);
+  const cur=metaMap[key]||{status:'未联系',tags:[],notes:''};
+  metaMap[key]=Object.assign({},cur,{notes:val});
+  closeNote();renderCards();
+  pushMeta(activePhone,'notes',val);
 }
 
 // EXPORT MODAL
 function openExport(){
-  const s=gm('status');
+  const s=buildMetaMaps().status;
   let n=0,c=0,cv=0;
   allRows.forEach(r=>{const st=s[r.phone]||'未联系';if(st==='未联系')n++;else if(st==='已联系')c++;else cv++;});
   document.getElementById('exp-count-all').textContent=allRows.length;
@@ -854,7 +893,7 @@ function openExport(){
 function closeExport(){document.getElementById('export-modal').classList.remove('show');}
 function doExport(){
   const val=document.querySelector('input[name=exp]:checked').value;
-  const s=gm('status');const nm=gm('notes');const tm=gm('tags');
+  const {status:s,notes:nm,tags:tm}=buildMetaMaps();
   let rows=allRows;
   if(val==='filtered') rows=filteredRows;
   else if(val.startsWith('status-')) rows=allRows.filter(r=>(s[r.phone]||'未联系')===val.replace('status-',''));
