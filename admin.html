@@ -134,6 +134,9 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
 .pinfo{font-size:0.78rem;color:var(--text-soft)}
 
 .err-bar{background:#FFF3F3;border:1px solid #FFCDD2;border-radius:12px;padding:12px 16px;color:#C62828;font-size:0.83rem;margin:12px;display:none}
+.migrate-bar{background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:12px 16px;color:#8D6E00;font-size:0.83rem;margin:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.migrate-bar button{background:#F5A623;color:#fff;border:none;border-radius:20px;padding:6px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.migrate-dismiss{cursor:pointer;color:#8D6E00;text-decoration:underline;font-size:0.78rem;margin-left:auto}
 
 /* MODALS */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(45,26,31,0.5);z-index:300;align-items:flex-end;justify-content:center}
@@ -223,6 +226,11 @@ html,body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(-
   </div>
 
   <div class="err-bar" id="err-bar"></div>
+  <div class="migrate-bar" id="migrate-bar" style="display:none">
+    <span>📤 检测到本机还有 <b id="migrate-count">0</b> 位客户的旧标记（升级共享同步前打的），同步后所有人都能看到</span>
+    <button onclick="migrateLocalMeta()">立即同步</button>
+    <span class="migrate-dismiss" onclick="dismissMigrateBar()">暂不</span>
+  </div>
   <div class="cards" id="cards-wrap"></div>
   <div class="pagination" id="pagination"></div>
 </div>
@@ -368,6 +376,38 @@ function enterApp(u, acc){
   document.getElementById('app-screen').style.display='block';
   document.getElementById('hdr-user').textContent=currentUser.name;
   loadData();
+  checkLegacyMeta();
+}
+// 检测本机浏览器里是否还有升级共享同步前的旧标记（存在 localStorage 里），有就提示同步
+function checkLegacyMeta(){
+  const s=gm('status'),tm=gm('tags'),nm=gm('notes');
+  const phones=new Set([...Object.keys(s),...Object.keys(tm),...Object.keys(nm)]);
+  const bar=document.getElementById('migrate-bar');
+  if(phones.size && !localStorage.getItem(sk('migrated'))){
+    document.getElementById('migrate-count').textContent=phones.size;
+    bar.style.display='flex';
+  } else {
+    bar.style.display='none';
+  }
+}
+function dismissMigrateBar(){
+  document.getElementById('migrate-bar').style.display='none';
+}
+// 把本机旧标记逐条推送到共享表（CRM_META），推送完标记为"已迁移"，不再重复提示
+function migrateLocalMeta(){
+  const s=gm('status'),tm=gm('tags'),nm=gm('notes');
+  const phones=new Set([...Object.keys(s),...Object.keys(tm),...Object.keys(nm)]);
+  if(!phones.size){ alert('没有发现本机的旧标记数据'); return; }
+  let pushed=0;
+  phones.forEach(phone=>{
+    if(s[phone] && s[phone]!=='未联系'){ pushMeta(phone,'status',s[phone]); pushed++; }
+    if(tm[phone] && tm[phone].length){ pushMeta(phone,'tags',JSON.stringify(tm[phone])); }
+    if(nm[phone]){ pushMeta(phone,'notes',nm[phone]); }
+  });
+  localStorage.setItem(sk('migrated'),'1');
+  document.getElementById('migrate-bar').style.display='none';
+  alert('已同步 '+phones.size+' 位客户的旧标记到共享表，稍后点「🔄刷新」即可看到最新状态。');
+  setTimeout(()=>loadData(),1500);
 }
 function doLogin(){
   const u=document.getElementById('lu').value.trim().toLowerCase();
