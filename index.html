@@ -1091,6 +1091,7 @@ detectCountryByIP();
 function openFormModal(){document.getElementById('form-modal').classList.add('show');document.body.style.overflow='hidden';}
 function closeFormModal(e){if(e&&e.target!==document.getElementById('form-modal'))return;document.getElementById('form-modal').classList.remove('show');document.body.style.overflow='';}
 function submitModal(){
+  if(window._submitLocked)return; // 已成功提交过一次：彻底阻止重复提交（无论多快连点）
   var n=document.getElementById('m-name').value.trim(),c=document.getElementById('m-country').value;
   var p=document.getElementById('m-phone').value.trim(),em=document.getElementById('m-email').value.trim();
   var l=(document.getElementById('m-line-optional')||{value:''}).value.trim();
@@ -1098,6 +1099,7 @@ function submitModal(){
   if(c==='+886'&&!l){alert('台湾学员请填写Line ID');return;}
   if(!isValidPhone(c,p)){document.getElementById('phone-error').style.display='block';document.getElementById('m-phone').focus();return;}
   document.getElementById('phone-error').style.display='none';
+  window._submitLocked=true; // 验证全部通过，正式进入提交流程后才上锁
   var fp=c+p,cn=(phoneRules[c]||{}).name||c;
   // 客户端预选（仅作后端不可达时的兜底显示），最终以 Apps Script 服务端分配为准
   var sel;
@@ -1169,7 +1171,16 @@ function submitModal(){
 var CD_SCHEDULE = [
   { until: Date.UTC(2026,6,25,14,0,0), target: Date.UTC(2026,6,25,11,0,0), label: '📅 7月25日（周六）· 晚上 19:00 全球直播大课', live: '7月25日（周六）', camp: '7月28-31日' },
   { until: Date.UTC(2026,6,28,15,0,0), target: Date.UTC(2026,6,28,11,0,0), label: '📅 7月28-31日 · 每晚 19:00 开课',        live: '8月1日（周六）', camp: '7月28-31日' },
-  { until: Date.UTC(2026,7,9,16,0,0),  target: Date.UTC(2026,7,1,11,0,0),  label: '📅 8月1日（周六）· 晚上 19:00 全球直播大课', live: '8月1日（周六）', camp: '7月28-31日' }
+  // 阶段：7/28 23:00 → 8/1 晚上10:00　倒数 8/1（周六）19:00 全球直播
+  { until: Date.UTC(2026,7,1,14,0,0),  target: Date.UTC(2026,7,1,11,0,0),  label: '📅 8月1日（周六）· 晚上 19:00 全球直播大课', live: '8月1日（周六）', camp: '7月28-31日' },
+  // 阶段：8/1 22:00 → 8/4 晚上11:00　倒数 8/4 19:00（8月4-7日 4天营）
+  { until: Date.UTC(2026,7,4,15,0,0),  target: Date.UTC(2026,7,4,11,0,0),  label: '📅 8月4-7日 · 每晚 19:00 开课',        live: '8月8日（周六）', camp: '8月4-7日' },
+  // 阶段：8/4 23:00 → 8/8 晚上10:00　倒数 8/8（周六）19:00 全球直播
+  { until: Date.UTC(2026,7,8,14,0,0),  target: Date.UTC(2026,7,8,11,0,0),  label: '📅 8月8日（周六）· 晚上 19:00 全球直播大课', live: '8月8日（周六）', camp: '8月4-7日' },
+  // 阶段：8/8 22:00 → 8/10 晚上11:00　倒数 8/10 19:00（8月10-13日 4天营）
+  { until: Date.UTC(2026,7,10,15,0,0), target: Date.UTC(2026,7,10,11,0,0), label: '📅 8月10-13日 · 每晚 19:00 开课',       live: '8月16日（周日）', camp: '8月10-13日' },
+  // 阶段：8/10 23:00 之后　倒数 8/16（周日）19:00 全球直播
+  { until: Date.UTC(2026,8,20,16,0,0), target: Date.UTC(2026,7,16,11,0,0), label: '📅 8月16日（周日）· 晚上 19:00 全球直播大课', live: '8月16日（周日）', camp: '8月10-13日' }
 ];
 function _cdStage(){
   var now = Date.now();
