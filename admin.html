@@ -302,6 +302,7 @@ const ACCOUNTS = {
   'yuecong':   {pass:'yc1234', name:'越聪老师',          staff:'越聪老师', role:'staff'},
   'xinyu':     {pass:'xy1234', name:'馨予老师',          staff:'馨予老师', role:'staff'},
   'qide':      {pass:'qd1234', name:'齐得老师',          staff:'齐得老师', role:'staff'},
+  'lina':      {pass:'lina1314',name:'丽娜老师',         staff:'丽娜老师', role:'staff'},
   'zhangkai':  {pass:'zk1314', name:'程章凯老师',        staff:'程章凯老师', role:'staff'},
   'sam':       {pass:'sam1234',name:'Sam老师',           staff:'Sam老师',  role:'staff'},
   'xiaohe':    {pass:'he1234', name:'小何老师',          staff:'小何老师', role:'staff'},
@@ -315,6 +316,7 @@ const STAFF_GROUPS = {
   '越聪老师': ['越聪老师'],
   '馨予老师': ['馨予老师'],
   '齐得老师': ['齐得老师'],
+  '丽娜老师': ['丽娜老师'],
   '程章凯老师': ['程章凯老师'],
   'Sam老师':  ['Sam老师'],
   '小何老师': ['小何老师','小何助教'],
@@ -580,7 +582,7 @@ function updateStats(){
   // 管理员显示客服分类统计
   const staffStatsEl=document.getElementById('staff-stats');
   if(currentUser.role==='admin'){
-    const staffList=['志颖老师','越聪老师','馨予老师','齐得老师','程章凯老师','Sam老师','小何老师','董润知老师','黄娟老师'];
+    const staffList=['志颖老师','越聪老师','馨予老师','齐得老师','丽娜老师','程章凯老师','Sam老师','小何老师','董润知老师','黄娟老师'];
     const counts={};
     staffList.forEach(st=>counts[st]=0);
     allRows.forEach(r=>{ staffList.forEach(st=>{ if(staffMatch(r.staff,st)) counts[st]++; }); });
